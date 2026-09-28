@@ -10,3 +10,16 @@
 - DJ e BAND si distinguono solo tramite `Artist.tipo`: niente logiche hardcoded per i DJ.
 - Migrazioni Prisma senza DB: generare l'SQL con `prisma migrate diff`.
 - Versioni: TypeScript 6.0 (typescript-eslint non supporta ancora TS 7), Prisma 6, ESLint 9.
+
+## Nuove migrazioni Prisma (senza database)
+
+1. Modifica `backend/prisma/schema.prisma`.
+2. Genera l'SQL come differenza rispetto allo schema dell'ultimo commit:
+   ```bash
+   cd backend
+   git show HEAD:backend/prisma/schema.prisma > /tmp/old.prisma
+   npx prisma migrate diff --from-schema-datamodel /tmp/old.prisma \
+     --to-schema-datamodel prisma/schema.prisma --script \
+     > prisma/migrations/<YYYYMMDDHHMMSS>_<nome>/migration.sql
+   ```
+3. I vincoli custom (exclusion constraint `btree_gist`, CHECK) sono solo nell'SQL: non rimuoverli.

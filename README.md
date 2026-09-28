@@ -22,6 +22,7 @@ Non esiste un ambiente locale di riferimento: ogni modifica si verifica dopo il 
 ### Backend (Railway)
 
 - Root Directory del servizio: `backend`
+- Configurazione in `backend/railway.json` (in Railway: Settings → Config-as-code → `/backend/railway.json`)
 - All'avvio vengono eseguite le migrazioni (`prisma migrate deploy`) e il seed dell'utente admin
 - Health check: `GET /health`
 
