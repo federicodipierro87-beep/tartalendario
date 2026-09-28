@@ -38,3 +38,10 @@ function parseWith<S extends z.ZodType>(schema: S, data: unknown, message: strin
   }
   return result.data;
 }
+
+/** Legge un parametro di percorso come stringa (Express 5 lo tipizza come string | string[]). */
+export function param(req: Request, name: string): string {
+  const value = req.params[name];
+  if (typeof value !== 'string' || value === '') throw badRequest(`Parametro "${name}" mancante`);
+  return value;
+}

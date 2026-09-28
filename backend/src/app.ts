@@ -3,8 +3,21 @@ import express, { type ErrorRequestHandler } from 'express';
 import { Prisma } from '@prisma/client';
 import { config } from './config.js';
 import { HttpError } from './lib/http.js';
+import { artistsRouter } from './routes/artists.js';
 import { authRouter } from './routes/auth.js';
+import { availabilityRouter } from './routes/availability.js';
+import { eventsRouter } from './routes/events.js';
 import { healthRouter } from './routes/health.js';
+import { meRouter } from './routes/me.js';
+import { performancesRouter } from './routes/performances.js';
+import { roomsRouter } from './routes/rooms.js';
+import { usersRouter } from './routes/users.js';
+
+/** Violazione degli exclusion constraint di non sovrapposizione (SQLSTATE 23P01). */
+function isOverlapViolation(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : '';
+  return message.includes('23P01') || message.includes('_no_sovrapposizioni');
+}
 
 export function createApp() {
   const app = express();
@@ -21,6 +34,13 @@ export function createApp() {
 
   app.use(healthRouter);
   app.use(authRouter);
+  app.use(usersRouter);
+  app.use(artistsRouter);
+  app.use(roomsRouter);
+  app.use(eventsRouter);
+  app.use(performancesRouter);
+  app.use(availabilityRouter);
+  app.use(meRouter);
 
   app.use((_req, res) => {
     res.status(404).json({ error: 'Risorsa non trovata' });
@@ -44,6 +64,10 @@ export function createApp() {
         res.status(409).json({ error: 'Operazione impossibile: elemento collegato ad altri dati' });
         return;
       }
+    }
+    if (isOverlapViolation(err)) {
+      res.status(409).json({ error: 'Conflitto: artista o sala già occupati in questo orario' });
+      return;
     }
     if (err instanceof SyntaxError && 'body' in err) {
       res.status(400).json({ error: 'JSON non valido' });
