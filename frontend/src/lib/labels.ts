@@ -8,7 +8,8 @@ export const artistTypeLabel: Record<ArtistType, string> = { DJ: 'DJ', BAND: 'Ba
 export const ROLES: Role[] = ['ADMIN', 'STAFF', 'ARTIST'];
 export const roleLabel: Record<Role, string> = { ADMIN: 'Amministratore', STAFF: 'Staff', ARTIST: 'Artista' };
 
-export const EVENT_STATUSES: EventStatus[] = ['BOZZA', 'PUBBLICATO', 'ANNULLATO'];
+// Pubblicata è la scelta predefinita e compare per prima.
+export const EVENT_STATUSES: EventStatus[] = ['PUBBLICATO', 'BOZZA', 'ANNULLATO'];
 export const eventStatusLabel: Record<EventStatus, string> = {
   BOZZA: 'Bozza',
   PUBBLICATO: 'Pubblicata',

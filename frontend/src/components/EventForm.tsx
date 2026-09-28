@@ -3,6 +3,8 @@ import { api, errorMessage } from '../lib/api';
 import { EVENT_STATUSES, eventStatusLabel } from '../lib/labels';
 import { formatRange, isoToRomeParts, romeToIso, todayRome } from '../lib/time';
 import type { EventItem, EventStatus } from '../lib/types';
+import { splitLineup, type LineupValue } from '../lib/lineup';
+import { LineupPicker } from './LineupPicker';
 
 interface Props {
   event?: EventItem;
@@ -23,8 +25,9 @@ export function EventForm({ event, defaultDate, onSaved, onCancel }: Props) {
   const [data, setData] = useState(start?.date ?? defaultDate ?? todayRome());
   const [oraInizio, setOraInizio] = useState(start?.time ?? '23:00');
   const [oraFine, setOraFine] = useState(end?.time ?? '05:00');
-  const [stato, setStato] = useState<EventStatus>(event?.stato ?? 'BOZZA');
+  const [stato, setStato] = useState<EventStatus>(event?.stato ?? 'PUBBLICATO');
   const [note, setNote] = useState(event?.note ?? '');
+  const [lineup, setLineup] = useState<LineupValue>({ artistIds: [], roomId: '' });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -40,7 +43,7 @@ export function EventForm({ event, defaultDate, onSaved, onCancel }: Props) {
       const body = { titolo, inizio, fine, stato, note: note || null };
       const r = event
         ? await api.patch<{ event: EventItem }>(`/events/${event.id}`, body)
-        : await api.post<{ event: EventItem }>('/events', body);
+        : await api.post<{ event: EventItem }>('/events', { ...body, slots: splitLineup(lineup, inizio, fine) });
       onSaved(r.event);
     } catch (err) {
       setError(errorMessage(err));
@@ -55,6 +58,7 @@ export function EventForm({ event, defaultDate, onSaved, onCancel }: Props) {
         Titolo
         <input value={titolo} onChange={(e) => setTitolo(e.target.value)} placeholder="es. Sabato Notte" required />
       </label>
+      {!event && <LineupPicker value={lineup} onChange={setLineup} inizio={inizio} fine={fine} />}
       <div className="form-row">
         <label>
           Data

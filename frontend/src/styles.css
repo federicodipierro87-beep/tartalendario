@@ -721,3 +721,33 @@ label.checkbox {
   font-size: 1rem;
   margin: 0 0 0.6rem;
 }
+
+/* ---------- Line-up nuova serata ---------- */
+.lineup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.lineup-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.lineup-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.lineup-list li:last-child {
+  border-bottom: 0;
+}
+.lineup-time {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-size: 0.85rem;
+  min-width: 7.5rem;
+}

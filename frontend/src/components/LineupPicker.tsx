@@ -1,0 +1,119 @@
+import { api } from '../lib/api';
+import { artistTypeLabel } from '../lib/labels';
+import { splitLineup, type LineupValue } from '../lib/lineup';
+import { formatRange } from '../lib/time';
+import type { Artist, Room } from '../lib/types';
+import { useAsync } from '../lib/useAsync';
+
+interface Props {
+  value: LineupValue;
+  onChange: (value: LineupValue) => void;
+  inizio: string | null;
+  fine: string | null;
+}
+
+/** Selezione degli artisti registrati (attivi) da inserire nella serata, con anteprima degli slot. */
+export function LineupPicker({ value, onChange, inizio, fine }: Props) {
+  const { data, error } = useAsync(() =>
+    Promise.all([
+      api.get<{ artists: Artist[] }>('/artists', { attivo: 'true' }),
+      api.get<{ rooms: Room[] }>('/rooms'),
+    ]).then(([a, r]) => {
+      const rooms = r.rooms.filter((x) => x.attiva);
+      // Sala predefinita: la prima attiva.
+      if (!value.roomId && rooms[0]) onChange({ ...value, roomId: rooms[0].id });
+      return { artists: a.artists, rooms };
+    }),
+  );
+
+  const byId = new Map((data?.artists ?? []).map((a) => [a.id, a]));
+  const available = (data?.artists ?? []).filter((a) => !value.artistIds.includes(a.id));
+  const preview = splitLineup(value, inizio, fine);
+
+  const add = (id: string) => id && onChange({ ...value, artistIds: [...value.artistIds, id] });
+  const remove = (id: string) => onChange({ ...value, artistIds: value.artistIds.filter((x) => x !== id) });
+  const move = (index: number, delta: number) => {
+    const ids = [...value.artistIds];
+    const [item] = ids.splice(index, 1);
+    ids.splice(index + delta, 0, item);
+    onChange({ ...value, artistIds: ids });
+  };
+
+  if (error) return <div className="alert alert-error">{error}</div>;
+  if (!data) return <div className="muted small">Caricamento DJ…</div>;
+
+  return (
+    <div className="lineup">
+      <label>
+        DJ della serata
+        <select value="" onChange={(e) => add(e.target.value)} disabled={available.length === 0}>
+          <option value="">
+            {data.artists.length === 0
+              ? 'Nessun DJ registrato: aggiungili dalla pagina Artisti'
+              : available.length === 0
+                ? 'Tutti i DJ sono già selezionati'
+                : '+ Aggiungi un DJ…'}
+          </option>
+          {available.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.nomeArte}
+              {a.tipo !== 'DJ' ? ` (${artistTypeLabel[a.tipo]})` : ''}
+              {a.genereMusicale ? ` — ${a.genereMusicale}` : ''}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      {value.artistIds.length > 0 && (
+        <>
+          {data.rooms.length === 0 ? (
+            <div className="alert alert-error">Crea prima una sala dalla pagina Sale per poter assegnare i DJ.</div>
+          ) : (
+            data.rooms.length > 1 && (
+              <label>
+                Sala
+                <select value={value.roomId} onChange={(e) => onChange({ ...value, roomId: e.target.value })}>
+                  {data.rooms.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.nome}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )
+          )}
+          <ul className="lineup-list">
+            {value.artistIds.map((id, i) => {
+              const slot = preview[i];
+              return (
+                <li key={id}>
+                  <span className="lineup-time">{slot ? formatRange(slot.inizio, slot.fine) : '—'}</span>
+                  <span className="grow">{byId.get(id)?.nomeArte ?? '…'}</span>
+                  <button type="button" className="btn btn-ghost btn-icon" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Sposta su">
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-icon"
+                    onClick={() => move(i, 1)}
+                    disabled={i === value.artistIds.length - 1}
+                    aria-label="Sposta giù"
+                  >
+                    ↓
+                  </button>
+                  <button type="button" className="btn btn-danger-ghost btn-icon" onClick={() => remove(id)} aria-label="Rimuovi">
+                    ✕
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="muted small">
+            La serata viene divisa in parti uguali tra i DJ, nell'ordine indicato. Gli slot partono come "Proposto" e
+            ogni DJ li conferma dalla propria area; puoi rifinire gli orari dal dettaglio della serata.
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

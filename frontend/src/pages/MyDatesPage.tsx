@@ -1,12 +1,10 @@
 import { useMemo, useState } from 'react';
-import type { EventInput } from '@fullcalendar/core';
 import { useAuth } from '../auth/AuthContext';
 import { IcalLink } from '../components/IcalLink';
 import { Modal } from '../components/Modal';
-import { NightCalendar } from '../components/NightCalendar';
 import { PerformanceStatusBadge } from '../components/StatusBadge';
+import { AvailabilityCalendar } from './MyAvailabilityPage';
 import { api, errorMessage } from '../lib/api';
-import { performanceStatusColor } from '../lib/labels';
 import { formatDateOnly, formatRange } from '../lib/time';
 import type { Artist, Performance } from '../lib/types';
 import { useAsync } from '../lib/useAsync';
@@ -36,20 +34,6 @@ export function MyDatesPage() {
       passate: all.filter(isPast).reverse(),
     };
   }, [data]);
-
-  const calendarEvents: EventInput[] = useMemo(
-    () =>
-      (data?.performances ?? []).map((p) => ({
-        id: p.id,
-        title: `${p.event.titolo} · ${p.room.nome}`,
-        start: p.inizio,
-        end: p.fine,
-        backgroundColor: performanceStatusColor[p.stato].bg,
-        borderColor: performanceStatusColor[p.stato].bg,
-        textColor: performanceStatusColor[p.stato].fg,
-      })),
-    [data],
-  );
 
   if (!user?.artistId) {
     return (
@@ -85,9 +69,7 @@ export function MyDatesPage() {
 
       {data && tab === 'calendario' && (
         <>
-          <div className="card calendar-card">
-            <NightCalendar events={calendarEvents} />
-          </div>
+          <AvailabilityCalendar />
           <MyIcalCard />
         </>
       )}

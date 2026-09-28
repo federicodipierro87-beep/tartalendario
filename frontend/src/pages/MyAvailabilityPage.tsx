@@ -4,14 +4,18 @@ import { useAuth } from '../auth/AuthContext';
 import { Modal } from '../components/Modal';
 import { NightCalendar } from '../components/NightCalendar';
 import { api, errorMessage } from '../lib/api';
+import { performanceStatusColor } from '../lib/labels';
 import { formatDateOnly } from '../lib/time';
 import type { Availability, Performance } from '../lib/types';
 
 const AVAILABLE = '#16a34a';
 const UNAVAILABLE = '#dc2626';
 
-export function MyAvailabilityPage() {
-  const { user } = useAuth();
+/**
+ * Calendario personale dell'artista: le sue date + le disponibilità dichiarate.
+ * Cliccando su un giorno può segnarsi non disponibile (o disponibile).
+ */
+export function AvailabilityCalendar() {
   const [editing, setEditing] = useState<{ date: string; current?: Availability } | null>(null);
   const [version, setVersion] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -44,8 +48,9 @@ export function MyAvailabilityPage() {
               title: `${p.event.titolo} (${p.stato === 'PROPOSTO' ? 'proposta' : 'confermata'})`,
               start: p.inizio,
               end: p.fine,
-              backgroundColor: '#6d28d9',
-              borderColor: '#6d28d9',
+              backgroundColor: performanceStatusColor[p.stato].bg,
+              borderColor: performanceStatusColor[p.stato].bg,
+              textColor: performanceStatusColor[p.stato].fg,
             })),
         ];
       } catch (err) {
@@ -58,20 +63,11 @@ export function MyAvailabilityPage() {
   );
   const eventSources = useMemo(() => [{ events: loadEvents }], [loadEvents]);
 
-  if (!user?.artistId) {
-    return (
-      <div className="page narrow">
-        <h1>La mia disponibilità</h1>
-        <div className="alert alert-error">Il tuo utente non è collegato a un profilo artista. Contatta lo staff.</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="page">
-      <h1>La mia disponibilità</h1>
+    <>
       <p className="muted">
-        Tocca un giorno per indicare se sei disponibile. Lo staff vede queste informazioni quando ti propone una data.
+        Tocca un giorno per segnare un'indisponibilità (o confermare che sei disponibile). Lo staff la vede quando
+        ti propone una data.
       </p>
       <div className="legend">
         <span>
@@ -81,7 +77,10 @@ export function MyAvailabilityPage() {
           <i style={{ background: UNAVAILABLE }} /> Non disponibile
         </span>
         <span>
-          <i style={{ background: '#6d28d9' }} /> Le tue date
+          <i style={{ background: performanceStatusColor.CONFERMATO.bg }} /> Data confermata
+        </span>
+        <span>
+          <i style={{ background: performanceStatusColor.PROPOSTO.bg }} /> Da confermare
         </span>
       </div>
       {error && <div className="alert alert-error">{error}</div>}
@@ -107,6 +106,20 @@ export function MyAvailabilityPage() {
             setVersion((v) => v + 1);
           }}
         />
+      )}
+    </>
+  );
+}
+
+export function MyAvailabilityPage() {
+  const { user } = useAuth();
+  return (
+    <div className="page">
+      <h1>La mia disponibilità</h1>
+      {user?.artistId ? (
+        <AvailabilityCalendar />
+      ) : (
+        <div className="alert alert-error">Il tuo utente non è collegato a un profilo artista. Contatta lo staff.</div>
       )}
     </div>
   );
@@ -153,7 +166,7 @@ function AvailabilityModal({
         )}
         <label>
           Nota (facoltativa)
-          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="es. solo dopo mezzanotte" />
+          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="es. fuori città, impegno personale…" />
         </label>
         {error && <div className="alert alert-error">{error}</div>}
         <div className="form-actions">
@@ -166,11 +179,11 @@ function AvailabilityModal({
               Rimuovi indicazione
             </button>
           )}
-          <button className="btn btn-danger" disabled={busy} onClick={() => save(false)}>
-            Non disponibile
+          <button className="btn btn-ghost" disabled={busy} onClick={() => save(true)}>
+            Sono disponibile
           </button>
-          <button className="btn btn-primary" disabled={busy} onClick={() => save(true)}>
-            Disponibile
+          <button className="btn btn-danger" disabled={busy} onClick={() => save(false)}>
+            Segna non disponibile
           </button>
         </div>
       </div>
