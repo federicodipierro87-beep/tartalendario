@@ -4,6 +4,8 @@ import { artistTypeLabel } from '../lib/labels';
 import { formatDateOnly, todayRome } from '../lib/time';
 import type { Artist } from '../lib/types';
 import { useAsync } from '../lib/useAsync';
+import { useSlotsOnDate } from '../lib/useSlotsOnDate';
+import { SlotsOnDateWarning } from './SlotsOnDateWarning';
 
 interface Props {
   defaultDate?: string;
@@ -22,6 +24,7 @@ export function UnavailabilityForm({ defaultDate, onSaved, onCancel }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const existingSlots = useSlotsOnDate(data || null, artistIds);
   const byId = new Map((artists ?? []).map((a) => [a.id, a]));
   const available = (artists ?? []).filter((a) => !artistIds.includes(a.id));
 
@@ -84,6 +87,7 @@ export function UnavailabilityForm({ defaultDate, onSaved, onCancel }: Props) {
           {formatDateOnly(data)}.
         </div>
       )}
+      <SlotsOnDateWarning slots={existingSlots} audience="staff" />
       {error && <div className="alert alert-error">{error}</div>}
       <div className="form-actions">
         <button type="button" className="btn btn-ghost" onClick={onCancel}>

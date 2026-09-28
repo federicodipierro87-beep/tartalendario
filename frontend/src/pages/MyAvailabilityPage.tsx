@@ -6,6 +6,8 @@ import { NightCalendar } from '../components/NightCalendar';
 import { api, errorMessage } from '../lib/api';
 import { performanceStatusColor } from '../lib/labels';
 import { formatDateOnly } from '../lib/time';
+import { useSlotsOnDate } from '../lib/useSlotsOnDate';
+import { SlotsOnDateWarning } from '../components/SlotsOnDateWarning';
 import type { Availability, Performance } from '../lib/types';
 
 const AVAILABLE = '#16a34a';
@@ -137,6 +139,7 @@ function AvailabilityModal({
   onSaved: () => void;
 }) {
   const [note, setNote] = useState(current?.note ?? '');
+  const existingSlots = useSlotsOnDate(date);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -168,6 +171,7 @@ function AvailabilityModal({
           Nota (facoltativa)
           <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="es. fuori città, impegno personale…" />
         </label>
+        <SlotsOnDateWarning slots={existingSlots} audience="artist" />
         {error && <div className="alert alert-error">{error}</div>}
         <div className="form-actions">
           {current && (
