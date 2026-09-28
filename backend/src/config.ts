@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+// Messaggi di validazione zod in italiano per tutta l'applicazione.
+z.config(z.locales.it());
+
 const EnvSchema = z.object({
   NODE_ENV: z.string().default('production'),
   PORT: z.coerce.number().int().positive().default(3000),
