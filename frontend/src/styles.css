@@ -998,3 +998,9 @@ a.brand {
 .fc .fc-indisponibile {
   font-weight: 600;
 }
+.badge-danger {
+  background: var(--danger);
+  color: #fff;
+  border-color: transparent;
+  margin-left: 0.4rem;
+}

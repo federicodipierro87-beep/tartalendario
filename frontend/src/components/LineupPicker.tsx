@@ -4,16 +4,20 @@ import { splitLineup, type LineupValue } from '../lib/lineup';
 import { formatRange } from '../lib/time';
 import type { Artist } from '../lib/types';
 import { useAsync } from '../lib/useAsync';
+import { useUnavailableOn } from '../lib/useUnavailable';
 
 interface Props {
   value: LineupValue;
   onChange: (value: LineupValue) => void;
   inizio: string | null;
   fine: string | null;
+  /** Data della serata (yyyy-MM-dd): i DJ non disponibili non sono selezionabili. */
+  date: string | null;
 }
 
 /** Selezione degli artisti registrati (attivi) da inserire nella serata, con anteprima degli slot. */
-export function LineupPicker({ value, onChange, inizio, fine }: Props) {
+export function LineupPicker({ value, onChange, inizio, fine, date }: Props) {
+  const unavailable = useUnavailableOn(date);
   const { data, error } = useAsync(() =>
     api.get<{ artists: Artist[] }>('/artists', { attivo: 'true' }).then((r) => ({ artists: r.artists })),
   );
@@ -47,10 +51,14 @@ export function LineupPicker({ value, onChange, inizio, fine }: Props) {
                 : '+ Aggiungi un DJ…'}
           </option>
           {available.map((a) => (
-            <option key={a.id} value={a.id}>
+            <option key={a.id} value={a.id} disabled={unavailable.has(a.id)}>
               {a.nomeArte}
               {a.tipo !== 'DJ' ? ` (${artistTypeLabel[a.tipo]})` : ''}
-              {a.genereMusicale ? ` — ${a.genereMusicale}` : ''}
+              {unavailable.has(a.id)
+                ? ` — non disponibile${unavailable.get(a.id) ? ` (${unavailable.get(a.id)})` : ''}`
+                : a.genereMusicale
+                  ? ` — ${a.genereMusicale}`
+                  : ''}
             </option>
           ))}
         </select>
@@ -64,7 +72,10 @@ export function LineupPicker({ value, onChange, inizio, fine }: Props) {
               return (
                 <li key={id}>
                   <span className="lineup-time">{slot ? formatRange(slot.inizio, slot.fine) : '—'}</span>
-                  <span className="grow">{byId.get(id)?.nomeArte ?? '…'}</span>
+                  <span className="grow">
+                    {byId.get(id)?.nomeArte ?? '…'}
+                    {unavailable.has(id) && <span className="badge badge-danger">non disponibile</span>}
+                  </span>
                   <button type="button" className="btn btn-ghost btn-icon" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Sposta su">
                     ↑
                   </button>

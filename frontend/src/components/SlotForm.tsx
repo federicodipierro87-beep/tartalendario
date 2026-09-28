@@ -5,6 +5,7 @@ import { artistTypeLabel, PERFORMANCE_STATUSES, performanceStatusLabel } from '.
 import { formatDateOnly, formatRange, isoToRomeParts, TIMEZONE } from '../lib/time';
 import type { Artist, Availability, EventItem, Performance, PerformanceStatus, VenueSummary } from '../lib/types';
 import { useAsync } from '../lib/useAsync';
+import { useUnavailableOn } from '../lib/useUnavailable';
 
 interface Props {
   event: Pick<EventItem, 'id' | 'titolo' | 'inizio' | 'fine' | 'data'>;
@@ -55,6 +56,7 @@ export function SlotForm({ event, venue, slot, onSaved, onCancel }: Props) {
 
   // Disponibilità dichiarata dall'artista per la data della serata.
   const eventDay = event.data.slice(0, 10);
+  const unavailable = useUnavailableOn(eventDay);
   const availability = useAsync(
     () =>
       artistId
@@ -117,8 +119,9 @@ export function SlotForm({ event, venue, slot, onSaved, onCancel }: Props) {
           <select value={artistId} onChange={(e) => setArtistId(e.target.value)} required>
             <option value="">— Seleziona —</option>
             {artists.map((a) => (
-              <option key={a.id} value={a.id}>
+              <option key={a.id} value={a.id} disabled={unavailable.has(a.id) && a.id !== slot?.artistId}>
                 {a.nomeArte} ({artistTypeLabel[a.tipo]})
+                {unavailable.has(a.id) ? ' — non disponibile' : ''}
               </option>
             ))}
           </select>
