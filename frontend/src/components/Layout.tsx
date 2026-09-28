@@ -14,7 +14,7 @@ const NAV: NavItem[] = [
   { to: '/calendario', label: 'Calendario', roles: ['ADMIN', 'STAFF'] },
   { to: '/serate', label: 'Serate', roles: ['ADMIN', 'STAFF'] },
   { to: '/artisti', label: 'Artisti', roles: ['ADMIN', 'STAFF'] },
-  { to: '/sale', label: 'Sale', roles: ['ADMIN', 'STAFF'] },
+  { to: '/locali', label: 'Locali', roles: ['ADMIN', 'STAFF'] },
   { to: '/disponibilita', label: 'Disponibilità', roles: ['ADMIN', 'STAFF'] },
   { to: '/utenti', label: 'Utenti', roles: ['ADMIN'] },
   { to: '/le-mie-date', label: 'Le mie date', roles: ['ARTIST'] },

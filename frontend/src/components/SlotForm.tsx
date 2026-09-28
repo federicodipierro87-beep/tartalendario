@@ -3,20 +3,21 @@ import { DateTime } from 'luxon';
 import { api, ApiError, errorMessage } from '../lib/api';
 import { artistTypeLabel, PERFORMANCE_STATUSES, performanceStatusLabel } from '../lib/labels';
 import { formatDateOnly, formatRange, isoToRomeParts, TIMEZONE } from '../lib/time';
-import type { Artist, Availability, EventItem, Performance, PerformanceStatus, Room } from '../lib/types';
+import type { Artist, Availability, EventItem, Performance, PerformanceStatus, VenueSummary } from '../lib/types';
 import { useAsync } from '../lib/useAsync';
 
 interface Props {
   event: Pick<EventItem, 'id' | 'titolo' | 'inizio' | 'fine' | 'data'>;
+  venue?: VenueSummary;
   slot?: Performance;
   onSaved: () => void;
   onCancel: () => void;
 }
 
 interface Conflict {
-  motivo: 'ARTISTA' | 'SALA';
+  motivo: 'ARTISTA' | 'LOCALE';
   artista: string;
-  sala: string;
+  locale: string;
   serata: string;
   inizio: string;
   fine: string;
@@ -34,16 +35,12 @@ function nextOccurrence(fromIso: string, time: string, strictlyAfter = false): s
   return dt.toISO({ suppressMilliseconds: true })!;
 }
 
-export function SlotForm({ event, slot, onSaved, onCancel }: Props) {
+export function SlotForm({ event, venue, slot, onSaved, onCancel }: Props) {
   const lists = useAsync(() =>
-    Promise.all([
-      api.get<{ artists: Artist[] }>('/artists', { attivo: 'true' }),
-      api.get<{ rooms: Room[] }>('/rooms'),
-    ]).then(([a, r]) => ({ artists: a.artists, rooms: r.rooms.filter((x) => x.attiva || x.id === slot?.roomId) })),
+    api.get<{ artists: Artist[] }>('/artists', { attivo: 'true' }).then((r) => ({ artists: r.artists })),
   );
 
   const [artistId, setArtistId] = useState(slot?.artistId ?? '');
-  const [roomId, setRoomId] = useState(slot?.roomId ?? '');
   const [oraInizio, setOraInizio] = useState(isoToRomeParts(slot?.inizio ?? event.inizio).time);
   const [oraFine, setOraFine] = useState(isoToRomeParts(slot?.fine ?? event.fine).time);
   const [stato, setStato] = useState<PerformanceStatus>(slot?.stato ?? 'PROPOSTO');
@@ -87,7 +84,6 @@ export function SlotForm({ event, slot, onSaved, onCancel }: Props) {
       const body = {
         eventId: event.id,
         artistId,
-        roomId,
         inizio,
         fine,
         stato,
@@ -112,6 +108,7 @@ export function SlotForm({ event, slot, onSaved, onCancel }: Props) {
     <form className="form" onSubmit={onSubmit}>
       <div className="hint">
         {event.titolo} · {formatDateOnly(event.data)} · {formatRange(event.inizio, event.fine)}
+        {(venue ?? slot?.venue) && ` · ${(venue ?? slot?.venue)!.nome}`}
       </div>
       {lists.error && <div className="alert alert-error">{lists.error}</div>}
       <div className="form-row">
@@ -122,17 +119,6 @@ export function SlotForm({ event, slot, onSaved, onCancel }: Props) {
             {artists.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.nomeArte} ({artistTypeLabel[a.tipo]})
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Sala
-          <select value={roomId} onChange={(e) => setRoomId(e.target.value)} required>
-            <option value="">— Seleziona —</option>
-            {lists.data?.rooms.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.nome}
               </option>
             ))}
           </select>
@@ -180,7 +166,7 @@ export function SlotForm({ event, slot, onSaved, onCancel }: Props) {
             <ul className="conflicts">
               {conflicts.map((c, i) => (
                 <li key={i}>
-                  {c.motivo === 'ARTISTA' ? 'Artista' : 'Sala'} occupato: {c.artista} in {c.sala} — {c.serata},{' '}
+                  {c.motivo === 'ARTISTA' ? 'Artista' : 'Locale'} occupato: {c.artista} a {c.locale} — {c.serata},{' '}
                   {formatRange(c.inizio, c.fine)}
                 </li>
               ))}

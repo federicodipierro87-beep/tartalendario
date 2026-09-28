@@ -58,6 +58,7 @@ export function EventDetailPage() {
           </h1>
           <div className="muted">
             {formatDateOnly(event.data)} · {formatRange(event.inizio, event.fine)}
+            {event.venue && ` · ${event.venue.nome}`}
           </div>
         </div>
         <div className="form-actions">
@@ -85,12 +86,11 @@ export function EventDetailPage() {
         <div className="card empty">Nessuno slot. Aggiungi gli artisti della serata.</div>
       ) : (
         <div className="card table-wrap">
-          <table className="table">
+          <table className="table table-stack">
             <thead>
               <tr>
                 <th>Orario</th>
                 <th>Artista</th>
-                <th>Sala</th>
                 <th>Stato</th>
                 <th>Compenso</th>
                 <th></th>
@@ -99,16 +99,15 @@ export function EventDetailPage() {
             <tbody>
               {slots.map((p) => (
                 <tr key={p.id}>
-                  <td className="nowrap">{formatRange(p.inizio, p.fine)}</td>
-                  <td>
+                  <td className="nowrap" data-label="Orario">{formatRange(p.inizio, p.fine)}</td>
+                  <td data-label="Artista">
                     {p.artist.nomeArte} <span className="badge">{artistTypeLabel[p.artist.tipo]}</span>
                     {p.note && <div className="muted small pre">{p.note}</div>}
                   </td>
-                  <td>{p.room.nome}</td>
-                  <td>
+                  <td data-label="Stato">
                     <PerformanceStatusBadge stato={p.stato} />
                   </td>
-                  <td className="nowrap">{p.compenso ? `€ ${Number(p.compenso).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '—'}</td>
+                  <td className="nowrap" data-label="Compenso">{p.compenso ? `€ ${Number(p.compenso).toLocaleString('it-IT', { minimumFractionDigits: 2 })}` : '—'}</td>
                   <td className="nowrap actions">
                     <button className="btn btn-ghost" onClick={() => setSlotModal({ slot: p })}>
                       Modifica
@@ -140,6 +139,7 @@ export function EventDetailPage() {
         <Modal title={slotModal.slot ? 'Modifica slot' : 'Nuovo slot'} onClose={() => setSlotModal(null)} wide>
           <SlotForm
             event={event}
+            venue={event.venue}
             slot={slotModal.slot}
             onCancel={() => setSlotModal(null)}
             onSaved={() => {

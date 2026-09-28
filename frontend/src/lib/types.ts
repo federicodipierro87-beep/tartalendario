@@ -39,11 +39,15 @@ export interface Artist extends ArtistSummary {
   user: { id: string; email: string; nome: string } | null;
 }
 
-export interface Room {
+export interface Venue {
   id: string;
   nome: string;
-  attiva: boolean;
+  indirizzo: string | null;
+  attivo: boolean;
+  _count?: { events: number };
 }
+
+export type VenueSummary = Pick<Venue, 'id' | 'nome' | 'indirizzo'>;
 
 export interface EventItem {
   id: string;
@@ -53,6 +57,8 @@ export interface EventItem {
   fine: string;
   stato: EventStatus;
   note: string | null;
+  venueId: string;
+  venue?: VenueSummary;
   _count?: { performances: number };
   performances?: Performance[];
 }
@@ -61,15 +67,15 @@ export interface Performance {
   id: string;
   eventId: string;
   artistId: string;
-  roomId: string;
+  venueId: string;
   inizio: string;
   fine: string;
   stato: PerformanceStatus;
   compenso: string | null;
   note: string | null;
   artist: ArtistSummary & { genereMusicale: string | null };
-  room: { id: string; nome: string };
-  event: Pick<EventItem, 'id' | 'titolo' | 'stato' | 'inizio' | 'fine' | 'data'>;
+  venue: VenueSummary;
+  event: Pick<EventItem, 'id' | 'titolo' | 'stato' | 'inizio' | 'fine' | 'data' | 'venueId'>;
 }
 
 export interface Availability {

@@ -41,7 +41,7 @@ export function UsersPage() {
       {(error || actionError) && <div className="alert alert-error">{error ?? actionError}</div>}
       {data && (
         <div className="card table-wrap">
-          <table className="table">
+          <table className="table table-stack">
             <thead>
               <tr>
                 <th>Nome</th>
@@ -54,10 +54,10 @@ export function UsersPage() {
             <tbody>
               {data.users.map((u) => (
                 <tr key={u.id}>
-                  <td>{u.nome}</td>
-                  <td>{u.email}</td>
-                  <td>{roleLabel[u.ruolo]}</td>
-                  <td>{u.artist ? `${u.artist.nomeArte} (${artistTypeLabel[u.artist.tipo]})` : '—'}</td>
+                  <td className="stack-title"><strong>{u.nome}</strong></td>
+                  <td data-label="Email" className="break">{u.email}</td>
+                  <td data-label="Ruolo">{roleLabel[u.ruolo]}</td>
+                  <td data-label="Artista">{u.artist ? `${u.artist.nomeArte} (${artistTypeLabel[u.artist.tipo]})` : '—'}</td>
                   <td className="nowrap actions">
                     <button className="btn btn-ghost" onClick={() => setModal({ user: u })}>
                       Modifica

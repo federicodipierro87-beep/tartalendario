@@ -14,7 +14,7 @@ import {
   performanceStatusColor,
   performanceStatusLabel,
 } from '../lib/labels';
-import type { Artist, ArtistType, EventItem, Performance, PerformanceStatus, Room } from '../lib/types';
+import type { Artist, ArtistType, EventItem, Performance, PerformanceStatus, Venue } from '../lib/types';
 import { useAsync } from '../lib/useAsync';
 
 function toggle<T>(list: T[], value: T): T[] {
@@ -24,16 +24,18 @@ function toggle<T>(list: T[], value: T): T[] {
 export function CalendarPage() {
   const navigate = useNavigate();
   const lists = useAsync(() =>
-    Promise.all([api.get<{ rooms: Room[] }>('/rooms'), api.get<{ artists: Artist[] }>('/artists')]).then(
-      ([r, a]) => ({ rooms: r.rooms, artists: a.artists }),
+    Promise.all([api.get<{ venues: Venue[] }>('/venues'), api.get<{ artists: Artist[] }>('/artists')]).then(
+      ([v, a]) => ({ venues: v.venues, artists: a.artists }),
     ),
   );
 
-  const [roomIds, setRoomIds] = useState<string[]>([]);
+  const [venueIds, setVenueIds] = useState<string[]>([]);
   const [artistId, setArtistId] = useState('');
   const [stati, setStati] = useState<PerformanceStatus[]>(['PROPOSTO', 'CONFERMATO']);
   const [tipi, setTipi] = useState<ArtistType[]>([]);
   const [showEvents, setShowEvents] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const activeFilters = venueIds.length + tipi.length + (artistId ? 1 : 0);
   const [error, setError] = useState<string | null>(null);
 
   const [slotModal, setSlotModal] = useState<Performance | null>(null);
@@ -47,19 +49,21 @@ export function CalendarPage() {
           api.get<{ performances: Performance[] }>('/performances', {
             from: info.startStr,
             to: info.endStr,
-            roomId: roomIds,
+            venueId: venueIds,
             artistId: artistId || undefined,
             stato: stati,
             tipo: tipi,
           }),
           showEvents
-            ? api.get<{ events: EventItem[] }>('/events', { from: info.startStr, to: info.endStr })
+            ? api
+                .get<{ events: EventItem[] }>('/events', { from: info.startStr, to: info.endStr })
+                .then((r) => ({ events: venueIds.length ? r.events.filter((e) => venueIds.includes(e.venueId)) : r.events }))
             : Promise.resolve({ events: [] as EventItem[] }),
         ]);
         setError(null);
         const serate: EventInput[] = evs.events.map((ev) => ({
           id: `event-${ev.id}`,
-          title: `★ ${ev.titolo}`,
+          title: `★ ${ev.titolo}${ev.venue ? ` · ${ev.venue.nome}` : ''}`,
           start: ev.inizio,
           end: ev.fine,
           backgroundColor: 'transparent',
@@ -70,7 +74,7 @@ export function CalendarPage() {
         }));
         const slots: EventInput[] = perf.performances.map((p) => ({
           id: p.id,
-          title: `${p.artist.nomeArte} · ${p.room.nome}`,
+          title: `${p.artist.nomeArte} · ${p.venue.nome}`,
           start: p.inizio,
           end: p.fine,
           backgroundColor: performanceStatusColor[p.stato].bg,
@@ -86,7 +90,7 @@ export function CalendarPage() {
     },
     // version forza il ricaricamento dopo un salvataggio
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [roomIds, artistId, stati, tipi, showEvents, version],
+    [venueIds, artistId, stati, tipi, showEvents, version],
   );
 
   const eventSources = useMemo(() => [{ events: loadEvents }], [loadEvents]);
@@ -101,7 +105,10 @@ export function CalendarPage() {
         </button>
       </div>
 
-      <div className="card filters">
+      <button className="btn btn-ghost filters-toggle" onClick={() => setFiltersOpen((o) => !o)} aria-expanded={filtersOpen}>
+        {filtersOpen ? 'Nascondi filtri' : `Filtri${activeFilters ? ` (${activeFilters})` : ''}`}
+      </button>
+      <div className={`card filters ${filtersOpen ? 'open' : ''}`}>
         <div className="filter-group">
           <span className="filter-label">Stato slot</span>
           {PERFORMANCE_STATUSES.map((s) => (
@@ -123,14 +130,14 @@ export function CalendarPage() {
             </button>
           ))}
         </div>
-        {lists.data && lists.data.rooms.length > 1 && (
+        {lists.data && lists.data.venues.length > 1 && (
           <div className="filter-group">
-            <span className="filter-label">Sala</span>
-            {lists.data.rooms.map((r) => (
+            <span className="filter-label">Locale</span>
+            {lists.data.venues.map((r) => (
               <button
                 key={r.id}
-                className={`chip ${roomIds.includes(r.id) ? 'on' : ''}`}
-                onClick={() => setRoomIds(toggle(roomIds, r.id))}
+                className={`chip ${venueIds.includes(r.id) ? 'on' : ''}`}
+                onClick={() => setVenueIds(toggle(venueIds, r.id))}
               >
                 {r.nome}
               </button>

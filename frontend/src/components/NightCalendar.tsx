@@ -9,12 +9,16 @@ import luxonPlugin from '@fullcalendar/luxon3';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import { TIMEZONE } from '../lib/time';
 
+/** Su schermi stretti la vista lista è molto più leggibile della griglia mensile. */
+const isNarrow = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 700px)').matches;
+
 /**
  * FullCalendar configurato per un locale notturno:
  * - fuso Europe/Rome indipendente dal browser (plugin luxon);
  * - vista settimana dalle 18:00 alle 06:00 del giorno dopo, così una serata 23:00–05:00
  *   resta in un'unica colonna;
- * - nella vista mese gli eventi che finiscono prima delle 09:00 non "sconfinano" nel giorno dopo.
+ * - nella vista mese gli eventi che finiscono prima delle 09:00 non "sconfinano" nel giorno dopo;
+ * - su mobile si apre in vista lista.
  */
 export const NightCalendar = forwardRef<FullCalendar, CalendarOptions>(function NightCalendar(props, ref) {
   return (
@@ -23,7 +27,7 @@ export const NightCalendar = forwardRef<FullCalendar, CalendarOptions>(function 
       plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, luxonPlugin]}
       timeZone={TIMEZONE}
       locale={itLocale}
-      initialView="dayGridMonth"
+      initialView={isNarrow() ? 'listMonth' : 'dayGridMonth'}
       headerToolbar={{
         left: 'prev,next today',
         center: 'title',

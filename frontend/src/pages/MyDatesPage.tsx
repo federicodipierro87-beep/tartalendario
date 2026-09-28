@@ -120,7 +120,7 @@ function SlotList({
           <div className="grow">
             <strong>{p.event.titolo}</strong>
             <div className="muted">
-              {formatDateOnly(p.event.data)} · {formatRange(p.inizio, p.fine)} · {p.room.nome}
+              {formatDateOnly(p.event.data)} · {formatRange(p.inizio, p.fine)} · {p.venue.nome}
             </div>
             {p.compenso && (
               <div className="small">Compenso: € {Number(p.compenso).toLocaleString('it-IT', { minimumFractionDigits: 2 })}</div>
@@ -178,7 +178,7 @@ function RespondModal({
       <div className="form">
         <div className="hint">
           {performance.event.titolo} · {formatDateOnly(performance.event.data)} ·{' '}
-          {formatRange(performance.inizio, performance.fine)} · {performance.room.nome}
+          {formatRange(performance.inizio, performance.fine)} · {performance.venue.nome}
         </div>
         <label>
           Messaggio per lo staff (facoltativo)

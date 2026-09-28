@@ -3,14 +3,12 @@ import { TIMEZONE } from './time';
 
 export interface LineupSlot {
   artistId: string;
-  roomId: string;
   inizio: string;
   fine: string;
 }
 
 export interface LineupValue {
   artistIds: string[];
-  roomId: string;
 }
 
 const STEP_MINUTES = 15;
@@ -20,7 +18,7 @@ const STEP_MINUTES = 15;
  * uno per artista nell'ordine scelto. Gli orari si possono poi rifinire dal dettaglio serata.
  */
 export function splitLineup(value: LineupValue, inizio: string | null, fine: string | null): LineupSlot[] {
-  if (!inizio || !fine || !value.roomId || value.artistIds.length === 0) return [];
+  if (!inizio || !fine || value.artistIds.length === 0) return [];
   const start = DateTime.fromISO(inizio, { zone: TIMEZONE });
   const totalMinutes = DateTime.fromISO(fine, { zone: TIMEZONE }).diff(start, 'minutes').minutes;
   const n = value.artistIds.length;
@@ -31,7 +29,6 @@ export function splitLineup(value: LineupValue, inizio: string | null, fine: str
   };
   return value.artistIds.map((artistId, i) => ({
     artistId,
-    roomId: value.roomId,
     inizio: boundary(i),
     fine: boundary(i + 1),
   }));

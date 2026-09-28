@@ -2,7 +2,7 @@ import { api } from '../lib/api';
 import { artistTypeLabel } from '../lib/labels';
 import { splitLineup, type LineupValue } from '../lib/lineup';
 import { formatRange } from '../lib/time';
-import type { Artist, Room } from '../lib/types';
+import type { Artist } from '../lib/types';
 import { useAsync } from '../lib/useAsync';
 
 interface Props {
@@ -15,15 +15,7 @@ interface Props {
 /** Selezione degli artisti registrati (attivi) da inserire nella serata, con anteprima degli slot. */
 export function LineupPicker({ value, onChange, inizio, fine }: Props) {
   const { data, error } = useAsync(() =>
-    Promise.all([
-      api.get<{ artists: Artist[] }>('/artists', { attivo: 'true' }),
-      api.get<{ rooms: Room[] }>('/rooms'),
-    ]).then(([a, r]) => {
-      const rooms = r.rooms.filter((x) => x.attiva);
-      // Sala predefinita: la prima attiva.
-      if (!value.roomId && rooms[0]) onChange({ ...value, roomId: rooms[0].id });
-      return { artists: a.artists, rooms };
-    }),
+    api.get<{ artists: Artist[] }>('/artists', { attivo: 'true' }).then((r) => ({ artists: r.artists })),
   );
 
   const byId = new Map((data?.artists ?? []).map((a) => [a.id, a]));
@@ -66,22 +58,6 @@ export function LineupPicker({ value, onChange, inizio, fine }: Props) {
 
       {value.artistIds.length > 0 && (
         <>
-          {data.rooms.length === 0 ? (
-            <div className="alert alert-error">Crea prima una sala dalla pagina Sale per poter assegnare i DJ.</div>
-          ) : (
-            data.rooms.length > 1 && (
-              <label>
-                Sala
-                <select value={value.roomId} onChange={(e) => onChange({ ...value, roomId: e.target.value })}>
-                  {data.rooms.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.nome}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            )
-          )}
           <ul className="lineup-list">
             {value.artistIds.map((id, i) => {
               const slot = preview[i];

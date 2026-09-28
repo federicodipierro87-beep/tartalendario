@@ -66,7 +66,7 @@ export function ArtistsPage() {
       {data && data.length === 0 && <div className="card empty">Nessun artista trovato.</div>}
       {data && data.length > 0 && (
         <div className="card table-wrap">
-          <table className="table">
+          <table className="table table-stack">
             <thead>
               <tr>
                 <th>Nome d'arte</th>
@@ -80,17 +80,17 @@ export function ArtistsPage() {
             <tbody>
               {data.map((a) => (
                 <tr key={a.id} className={a.attivo ? '' : 'inactive'}>
-                  <td>
+                  <td className="stack-title">
                     <strong>{a.nomeArte}</strong> {!a.attivo && <span className="badge">disattivato</span>}
                   </td>
-                  <td>{artistTypeLabel[a.tipo]}</td>
-                  <td>{a.genereMusicale ?? '—'}</td>
-                  <td className="small">
+                  <td data-label="Tipo">{artistTypeLabel[a.tipo]}</td>
+                  <td data-label="Genere">{a.genereMusicale ?? '—'}</td>
+                  <td className="small" data-label="Contatti">
                     {a.email && <div>{a.email}</div>}
                     {a.telefono && <div>{a.telefono}</div>}
                     {!a.email && !a.telefono && '—'}
                   </td>
-                  <td className="small">{a.user ? a.user.email : <span className="muted">nessuno</span>}</td>
+                  <td className="small" data-label="Account">{a.user ? a.user.email : <span className="muted">nessuno</span>}</td>
                   <td className="nowrap actions">
                     <button className="btn btn-ghost" onClick={() => setModal({ artist: a })}>
                       Modifica

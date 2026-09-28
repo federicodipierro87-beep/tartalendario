@@ -751,3 +751,186 @@ label.checkbox {
   font-size: 0.85rem;
   min-width: 7.5rem;
 }
+
+/* ---------- Mobile ---------- */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+/* Nessuno scorrimento orizzontale della pagina (clip non rompe position: sticky). */
+html,
+body {
+  overflow-x: clip;
+  max-width: 100%;
+}
+#root,
+.app-shell,
+.content,
+.page {
+  min-width: 0;
+  max-width: 100%;
+}
+input,
+select,
+textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+.break {
+  overflow-wrap: anywhere;
+}
+.row-actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.filters-toggle {
+  display: none;
+  align-self: flex-start;
+}
+.modal {
+  max-height: calc(100dvh - 2rem);
+}
+
+@media (max-width: 700px) {
+  :root {
+    font-size: 15px;
+  }
+  .content {
+    padding: 1rem 0.75rem 2rem;
+  }
+  /* iOS zooma sui campi con testo < 16px e la pagina resta spostata: evitiamolo. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  input[type='date'],
+  input[type='time'] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 2.6rem;
+    display: block;
+  }
+  .page-header .btn-primary {
+    padding: 0.45rem 0.7rem;
+  }
+  .toolbar > * {
+    flex: 1 1 auto;
+  }
+  .segmented {
+    display: flex;
+    width: 100%;
+  }
+  .segmented button {
+    flex: 1;
+    padding: 0.45rem 0.4rem;
+    font-size: 0.9rem;
+  }
+
+  /* Filtri calendario comprimibili */
+  .filters-toggle {
+    display: inline-block;
+  }
+  .filters {
+    display: none;
+  }
+  .filters.open {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  /* Tabelle impilate a schede */
+  .table-wrap:has(.table-stack) {
+    overflow-x: visible;
+  }
+  .table-stack,
+  .table-stack tbody,
+  .table-stack tr,
+  .table-stack td {
+    display: block;
+    width: 100%;
+  }
+  .table-stack thead {
+    display: none;
+  }
+  .table-stack tr {
+    padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .table-stack tr:last-child {
+    border-bottom: 0;
+  }
+  .table-stack td {
+    border: 0;
+    padding: 0.15rem 0;
+    white-space: normal;
+  }
+  .table-stack td[data-label] {
+    display: flex;
+    gap: 0.75rem;
+  }
+  .table-stack td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 5.5rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    padding-top: 0.1rem;
+  }
+  .table-stack td[data-label] > * {
+    min-width: 0;
+  }
+  .table-stack .stack-title {
+    font-size: 1.05rem;
+    padding-bottom: 0.25rem;
+  }
+  .table-stack td.actions {
+    text-align: left;
+    padding-top: 0.5rem;
+    display: flex;
+    gap: 0.4rem;
+  }
+  .table-stack .actions .btn + .btn {
+    margin-left: 0;
+  }
+
+  /* Modale a tutta larghezza */
+  .modal-backdrop {
+    padding: 0.5rem;
+    align-items: start;
+  }
+  .modal {
+    max-height: calc(100dvh - 1rem);
+  }
+
+  /* FullCalendar compatto */
+  .calendar-card {
+    padding: 0.4rem;
+  }
+  .fc {
+    font-size: 0.8rem;
+  }
+  .fc .fc-toolbar-title {
+    font-size: 1.05rem;
+  }
+  .fc .fc-button {
+    padding: 0.3rem 0.55rem;
+  }
+  .lineup-time {
+    min-width: 6.5rem;
+  }
+  .list li {
+    padding: 0.6rem 0.75rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .topbar {
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+  .brand span {
+    display: none;
+  }
+}

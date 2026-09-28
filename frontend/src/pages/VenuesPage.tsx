@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from 'react';
+import { Modal } from '../components/Modal';
 import { api, errorMessage } from '../lib/api';
-import type { Room } from '../lib/types';
+import type { Venue } from '../lib/types';
 import { useAsync } from '../lib/useAsync';
 
-export function RoomsPage() {
-  const { data, error, loading, reload } = useAsync(() => api.get<{ rooms: Room[] }>('/rooms').then((r) => r.rooms));
-  const [nome, setNome] = useState('');
-  const [editing, setEditing] = useState<{ id: string; nome: string } | null>(null);
+export function VenuesPage() {
+  const { data, error, loading, reload } = useAsync(() =>
+    api.get<{ venues: Venue[] }>('/venues').then((r) => r.venues),
+  );
+  const [modal, setModal] = useState<{ venue?: Venue } | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   async function run(action: () => Promise<unknown>) {
@@ -19,82 +21,108 @@ export function RoomsPage() {
     }
   }
 
-  function onCreate(e: FormEvent) {
-    e.preventDefault();
-    run(async () => {
-      await api.post('/rooms', { nome });
-      setNome('');
-    });
-  }
-
-  function onRename(e: FormEvent) {
-    e.preventDefault();
-    if (!editing) return;
-    run(async () => {
-      await api.patch(`/rooms/${editing.id}`, { nome: editing.nome });
-      setEditing(null);
-    });
-  }
-
   return (
     <div className="page narrow">
-      <h1>Sale</h1>
-      <p className="muted">Sale e palchi del locale. Una sala disattivata non accetta nuovi slot.</p>
-
-      <form className="card inline-form" onSubmit={onCreate}>
-        <input placeholder="Nome nuova sala (es. Sala principale)" value={nome} onChange={(e) => setNome(e.target.value)} required />
-        <button className="btn btn-primary">Aggiungi</button>
-      </form>
+      <div className="page-header">
+        <h1>Locali</h1>
+        <button className="btn btn-primary" onClick={() => setModal({})}>
+          + Nuovo locale
+        </button>
+      </div>
+      <p className="muted">I locali in cui si svolgono le serate: li scegli quando registri una data.</p>
 
       {(error || actionError) && <div className="alert alert-error">{error ?? actionError}</div>}
       {loading && !data && <div className="muted">Caricamento…</div>}
 
-      {data && data.length === 0 && <div className="card empty">Nessuna sala. Aggiungine una per iniziare.</div>}
+      {data && data.length === 0 && (
+        <div className="card empty">Nessun locale. Aggiungine uno per poter registrare le serate.</div>
+      )}
       {data && data.length > 0 && (
         <ul className="card list">
-          {data.map((room) => (
-            <li key={room.id} className={room.attiva ? '' : 'inactive'}>
-              {editing?.id === room.id ? (
-                <form className="inline-form grow" onSubmit={onRename}>
-                  <input
-                    autoFocus
-                    value={editing.nome}
-                    onChange={(e) => setEditing({ ...editing, nome: e.target.value })}
-                    required
-                  />
-                  <button className="btn btn-primary">Salva</button>
-                  <button type="button" className="btn btn-ghost" onClick={() => setEditing(null)}>
-                    Annulla
-                  </button>
-                </form>
-              ) : (
-                <>
-                  <span className="grow">
-                    {room.nome} {!room.attiva && <span className="badge">disattivata</span>}
-                  </span>
-                  <button className="btn btn-ghost" onClick={() => setEditing({ id: room.id, nome: room.nome })}>
-                    Rinomina
-                  </button>
-                  <button
-                    className="btn btn-ghost"
-                    onClick={() => run(() => api.patch(`/rooms/${room.id}`, { attiva: !room.attiva }))}
-                  >
-                    {room.attiva ? 'Disattiva' : 'Riattiva'}
-                  </button>
-                  <button
-                    className="btn btn-danger-ghost"
-                    onClick={() =>
-                      confirm(`Eliminare la sala "${room.nome}"?`) && run(() => api.delete(`/rooms/${room.id}`))
-                    }
-                  >
-                    Elimina
-                  </button>
-                </>
-              )}
+          {data.map((v) => (
+            <li key={v.id} className={v.attivo ? '' : 'inactive'}>
+              <div className="grow">
+                <strong>{v.nome}</strong> {!v.attivo && <span className="badge">disattivato</span>}
+                <div className="muted small">
+                  {v.indirizzo ?? 'Nessun indirizzo'} · {v._count?.events ?? 0} serate
+                </div>
+              </div>
+              <div className="row-actions">
+                <button className="btn btn-ghost" onClick={() => setModal({ venue: v })}>
+                  Modifica
+                </button>
+                <button className="btn btn-ghost" onClick={() => run(() => api.patch(`/venues/${v.id}`, { attivo: !v.attivo }))}>
+                  {v.attivo ? 'Disattiva' : 'Riattiva'}
+                </button>
+                <button
+                  className="btn btn-danger-ghost"
+                  onClick={() => confirm(`Eliminare il locale "${v.nome}"?`) && run(() => api.delete(`/venues/${v.id}`))}
+                >
+                  Elimina
+                </button>
+              </div>
             </li>
           ))}
         </ul>
       )}
+
+      {modal && (
+        <Modal title={modal.venue ? `Modifica ${modal.venue.nome}` : 'Nuovo locale'} onClose={() => setModal(null)}>
+          <VenueForm
+            venue={modal.venue}
+            onCancel={() => setModal(null)}
+            onSaved={() => {
+              setModal(null);
+              reload();
+            }}
+          />
+        </Modal>
+      )}
     </div>
+  );
+}
+
+function VenueForm({ venue, onSaved, onCancel }: { venue?: Venue; onSaved: () => void; onCancel: () => void }) {
+  const [nome, setNome] = useState(venue?.nome ?? '');
+  const [indirizzo, setIndirizzo] = useState(venue?.indirizzo ?? '');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const body = { nome, indirizzo: indirizzo || null };
+      if (venue) await api.patch(`/venues/${venue.id}`, body);
+      else await api.post('/venues', body);
+      onSaved();
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form className="form" onSubmit={onSubmit}>
+      <label>
+        Nome del locale
+        <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="es. Tartaruga Club" required />
+      </label>
+      <label>
+        Indirizzo (facoltativo)
+        <input value={indirizzo} onChange={(e) => setIndirizzo(e.target.value)} placeholder="es. Via Roma 1, Milano" />
+      </label>
+      {error && <div className="alert alert-error">{error}</div>}
+      <div className="form-actions">
+        <button type="button" className="btn btn-ghost" onClick={onCancel}>
+          Annulla
+        </button>
+        <button className="btn btn-primary" disabled={busy}>
+          Salva
+        </button>
+      </div>
+    </form>
   );
 }

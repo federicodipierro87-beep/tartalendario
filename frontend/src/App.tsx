@@ -11,8 +11,8 @@ import { LoginPage } from './pages/LoginPage';
 import { MyAvailabilityPage } from './pages/MyAvailabilityPage';
 import { MyDatesPage } from './pages/MyDatesPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { RoomsPage } from './pages/RoomsPage';
 import { UsersPage } from './pages/UsersPage';
+import { VenuesPage } from './pages/VenuesPage';
 
 /** Pagina iniziale in base al ruolo. */
 function Home() {
@@ -41,7 +41,7 @@ export default function App() {
             <Route path="serate" element={<RequireAuth roles={[...staff]}><EventsPage /></RequireAuth>} />
             <Route path="serate/:id" element={<RequireAuth roles={[...staff]}><EventDetailPage /></RequireAuth>} />
             <Route path="artisti" element={<RequireAuth roles={[...staff]}><ArtistsPage /></RequireAuth>} />
-            <Route path="sale" element={<RequireAuth roles={[...staff]}><RoomsPage /></RequireAuth>} />
+            <Route path="locali" element={<RequireAuth roles={[...staff]}><VenuesPage /></RequireAuth>} />
             <Route path="disponibilita" element={<RequireAuth roles={[...staff]}><AvailabilityPage /></RequireAuth>} />
             <Route path="utenti" element={<RequireAuth roles={['ADMIN']}><UsersPage /></RequireAuth>} />
             <Route path="le-mie-date" element={<RequireAuth roles={['ARTIST']}><MyDatesPage /></RequireAuth>} />

@@ -2,7 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { api, errorMessage } from '../lib/api';
 import { EVENT_STATUSES, eventStatusLabel } from '../lib/labels';
 import { formatRange, isoToRomeParts, romeToIso, todayRome } from '../lib/time';
-import type { EventItem, EventStatus } from '../lib/types';
+import type { EventItem, EventStatus, Venue } from '../lib/types';
+import { useAsync } from '../lib/useAsync';
 import { splitLineup, type LineupValue } from '../lib/lineup';
 import { LineupPicker } from './LineupPicker';
 
@@ -27,9 +28,16 @@ export function EventForm({ event, defaultDate, onSaved, onCancel }: Props) {
   const [oraFine, setOraFine] = useState(end?.time ?? '05:00');
   const [stato, setStato] = useState<EventStatus>(event?.stato ?? 'PUBBLICATO');
   const [note, setNote] = useState(event?.note ?? '');
-  const [lineup, setLineup] = useState<LineupValue>({ artistIds: [], roomId: '' });
+  const [lineup, setLineup] = useState<LineupValue>({ artistIds: [] });
+  const [venueId, setVenueId] = useState(event?.venueId ?? '');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const venues = useAsync(() => api.get<{ venues: Venue[] }>('/venues').then((r) => r.venues));
+  // Locali selezionabili: quelli attivi più quello attuale della serata.
+  const venueOptions = (venues.data ?? []).filter((v) => v.attivo || v.id === event?.venueId);
+  // Predefinito: il locale della serata o il primo attivo.
+  const selectedVenueId = venueId || venueOptions[0]?.id || '';
 
   const inizio = data && oraInizio ? romeToIso(data, oraInizio) : null;
   const fine = inizio && oraFine ? romeToIso(data, oraFine, inizio) : null;
@@ -40,7 +48,7 @@ export function EventForm({ event, defaultDate, onSaved, onCancel }: Props) {
     setBusy(true);
     setError(null);
     try {
-      const body = { titolo, inizio, fine, stato, note: note || null };
+      const body = { titolo, venueId: selectedVenueId, inizio, fine, stato, note: note || null };
       const r = event
         ? await api.patch<{ event: EventItem }>(`/events/${event.id}`, body)
         : await api.post<{ event: EventItem }>('/events', { ...body, slots: splitLineup(lineup, inizio, fine) });
@@ -58,6 +66,23 @@ export function EventForm({ event, defaultDate, onSaved, onCancel }: Props) {
         Titolo
         <input value={titolo} onChange={(e) => setTitolo(e.target.value)} placeholder="es. Sabato Notte" required />
       </label>
+      <label>
+        Locale
+        <select value={selectedVenueId} onChange={(e) => setVenueId(e.target.value)} required disabled={!venues.data}>
+          {!venues.data && <option value="">Caricamento…</option>}
+          {venues.data && venueOptions.length === 0 && <option value="">Nessun locale: aggiungilo dalla pagina Locali</option>}
+          {venueOptions.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.nome}
+              {v.indirizzo ? ` — ${v.indirizzo}` : ''}
+            </option>
+          ))}
+        </select>
+      </label>
+      {venues.error && <div className="alert alert-error">{venues.error}</div>}
+      {event && selectedVenueId !== event.venueId && (
+        <div className="hint">Cambiando locale, anche gli slot della serata verranno spostati nel nuovo locale.</div>
+      )}
       {!event && <LineupPicker value={lineup} onChange={setLineup} inizio={inizio} fine={fine} />}
       <div className="form-row">
         <label>
@@ -96,7 +121,7 @@ export function EventForm({ event, defaultDate, onSaved, onCancel }: Props) {
         <button type="button" className="btn btn-ghost" onClick={onCancel}>
           Annulla
         </button>
-        <button className="btn btn-primary" disabled={busy}>
+        <button className="btn btn-primary" disabled={busy || !selectedVenueId}>
           {event ? 'Salva' : 'Crea serata'}
         </button>
       </div>

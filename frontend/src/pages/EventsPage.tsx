@@ -68,6 +68,7 @@ export function EventsPage() {
                 <strong>{ev.titolo}</strong>
                 <span className="muted">
                   {formatDateOnly(ev.data)} · {formatRange(ev.inizio, ev.fine)}
+                  {ev.venue && ` · ${ev.venue.nome}`}
                 </span>
               </Link>
               <span className="badge">{ev._count?.performances ?? 0} slot</span>
