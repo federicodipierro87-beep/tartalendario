@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { IcalLink } from '../components/IcalLink';
 import { Modal } from '../components/Modal';
 import { api, errorMessage } from '../lib/api';
 import { ARTIST_TYPES, artistTypeLabel } from '../lib/labels';
@@ -115,6 +116,16 @@ export function ArtistsPage() {
               reload();
             }}
           />
+          {modal.artist && (
+            <div className="modal-section">
+              <h3>Feed calendario (iCal)</h3>
+              <IcalLink
+                token={modal.artist.icalToken}
+                regeneratePath={`/artists/${modal.artist.id}/ical-token`}
+                onRegenerated={reload}
+              />
+            </div>
+          )}
         </Modal>
       )}
     </div>

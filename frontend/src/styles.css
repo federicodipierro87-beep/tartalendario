@@ -690,3 +690,34 @@ label.checkbox {
   font-size: 0.75rem;
   color: var(--text);
 }
+
+/* ---------- iCal ---------- */
+.ical {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.ical input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+}
+.ical-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.ical-actions a.btn {
+  text-decoration: none;
+}
+.ical p {
+  margin: 0;
+}
+.modal-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.modal-section h3 {
+  font-size: 1rem;
+  margin: 0 0 0.6rem;
+}

@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { Router } from 'express';
 import { z } from 'zod';
 import { badRequest, conflict, forbidden, notFound, parseBody, parseQuery } from '../lib/http.js';
@@ -21,6 +22,16 @@ meRouter.get('/me/artist', async (req, res) => {
   const artist = await prisma.artist.findUniqueOrThrow({
     where: { id: myArtistId(req) },
     include: { bandProfile: true },
+  });
+  res.json({ artist });
+});
+
+/** L'artista rigenera il proprio link iCal (il precedente smette di funzionare). */
+meRouter.post('/me/ical-token', async (req, res) => {
+  const artist = await prisma.artist.update({
+    where: { id: myArtistId(req) },
+    data: { icalToken: randomBytes(24).toString('base64url') },
+    select: { id: true, icalToken: true },
   });
   res.json({ artist });
 });

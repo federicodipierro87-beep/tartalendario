@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 import type { EventInput } from '@fullcalendar/core';
 import { useAuth } from '../auth/AuthContext';
+import { IcalLink } from '../components/IcalLink';
 import { Modal } from '../components/Modal';
 import { NightCalendar } from '../components/NightCalendar';
 import { PerformanceStatusBadge } from '../components/StatusBadge';
 import { api, errorMessage } from '../lib/api';
 import { performanceStatusColor } from '../lib/labels';
 import { formatDateOnly, formatRange } from '../lib/time';
-import type { Performance } from '../lib/types';
+import type { Artist, Performance } from '../lib/types';
 import { useAsync } from '../lib/useAsync';
 
 type Tab = 'da-confermare' | 'prossime' | 'calendario' | 'passate';
@@ -83,9 +84,12 @@ export function MyDatesPage() {
       {!data && !error && <div className="muted">Caricamento…</div>}
 
       {data && tab === 'calendario' && (
-        <div className="card calendar-card">
-          <NightCalendar events={calendarEvents} />
-        </div>
+        <>
+          <div className="card calendar-card">
+            <NightCalendar events={calendarEvents} />
+          </div>
+          <MyIcalCard />
+        </>
       )}
 
       {data && tab !== 'calendario' && (
@@ -209,5 +213,17 @@ function RespondModal({
         </div>
       </div>
     </Modal>
+  );
+}
+
+function MyIcalCard() {
+  const { data, error } = useAsync(() => api.get<{ artist: Artist }>('/me/artist').then((r) => r.artist));
+  return (
+    <section className="card">
+      <h2>Sincronizza con il tuo calendario</h2>
+      <p className="muted">Aggiungi le tue date a Google Calendar, Apple Calendar o Outlook: si aggiornano da sole.</p>
+      {error && <div className="alert alert-error">{error}</div>}
+      {data && <IcalLink token={data.icalToken} regeneratePath="/me/ical-token" />}
+    </section>
   );
 }

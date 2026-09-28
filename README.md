@@ -6,6 +6,27 @@
 Calendario condiviso per gestire le serate della discoteca: artisti (DJ oggi, band domani),
 sale, serate, slot, disponibilità e feed iCal.
 
+## Funzionalità
+
+- Login email/password (JWT), ruoli ADMIN / STAFF / ARTIST
+- Anagrafica artisti (DJ e BAND tramite il campo `tipo`), sale, serate e slot
+- Calendario mese / settimana / lista in Europe/Rome, filtri per stato, tipo, sala e artista
+- Controllo conflitti: stesso artista o stessa sala non possono avere slot attivi sovrapposti
+  (controllo applicativo con dettaglio + exclusion constraint PostgreSQL)
+- Area artista: conferma/rifiuto degli slot proposti, disponibilità per giorno
+- Feed iCal per artista (`GET /ical/<token>.ics`) da aggiungere a Google/Apple Calendar
+
+## API principali
+
+| Metodo | Percorso | Ruoli |
+|---|---|---|
+| POST | `/auth/login`, GET `/auth/me`, POST `/auth/change-password` | tutti |
+| CRUD | `/artists`, `/events`, `/rooms` (GET anche ARTIST), `/performances` (GET anche ARTIST, solo propri) | ADMIN, STAFF |
+| CRUD | `/users` | ADMIN |
+| GET | `/availability` | ADMIN, STAFF |
+| GET/PUT/DELETE | `/me/availability`, POST `/me/performances/:id/respond`, POST `/me/ical-token` | ARTIST |
+| GET | `/ical/:token.ics` | pubblico con token |
+
 ## Struttura
 
 ```
@@ -43,7 +64,7 @@ Il deploy parte solo quando la GitHub Action "CI" è verde.
 | `JWT_SECRET` | Segreto per firmare i token JWT |
 | `CORS_ORIGIN` | URL del sito Netlify (più valori separati da virgola) |
 | `PORT` | Porta HTTP (impostata da Railway) |
-| `PUBLIC_API_URL` | URL pubblico del backend, usato per i link iCal |
+| `PUBLIC_API_URL` | URL pubblico del backend (informativo; i link iCal sono costruiti dal frontend con `VITE_API_URL`) |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_NOME` | Utente ADMIN creato al primo avvio |
 
 ### Frontend (Netlify)
