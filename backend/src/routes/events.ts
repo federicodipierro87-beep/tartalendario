@@ -6,7 +6,7 @@ import { badRequest, notFound, parseBody, parseQuery } from '../lib/http.js';
 import { prisma } from '../lib/prisma.js';
 import { MAX_DURATION_MS, romeDateOf, zInstant } from '../lib/time.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
-import { performanceInclude } from './performances.js';
+import { performanceInclude, PerformanceSchema, validateSlot } from './performances.js';
 
 export const eventsRouter = Router();
 eventsRouter.use('/events', requireAuth, requireRole('ADMIN', 'STAFF'));
@@ -15,7 +15,7 @@ const EventBaseSchema = z.object({
   titolo: z.string().trim().min(1, 'Titolo obbligatorio').max(200),
   inizio: zInstant,
   fine: zInstant,
-  stato: z.enum(EventStatus).optional(), // default BOZZA (schema Prisma)
+  stato: z.enum(EventStatus).optional(), // default PUBBLICATO (schema Prisma)
   note: z.string().trim().max(5000).nullish(),
 });
 
@@ -56,10 +56,24 @@ eventsRouter.get('/events/:id', async (req, res) => {
   res.json({ event });
 });
 
+// In creazione si possono indicare gli slot iniziali (es. i DJ della serata): serata e slot
+// vengono creati in un'unica transazione, con gli stessi controlli di coerenza e conflitto.
+const EventCreateSchema = EventBaseSchema.extend({
+  slots: z.array(PerformanceSchema.omit({ eventId: true })).max(50).optional(),
+});
+
 eventsRouter.post('/events', async (req, res) => {
-  const data = parseBody(req, EventBaseSchema);
+  const { slots = [], ...data } = parseBody(req, EventCreateSchema);
   assertValidRange(data.inizio, data.fine);
-  const event = await prisma.event.create({ data: { ...data, data: romeDateOf(data.inizio) } });
+  const event = await prisma.$transaction(async (tx) => {
+    const created = await tx.event.create({ data: { ...data, data: romeDateOf(data.inizio) } });
+    for (const slot of slots) {
+      const input = { ...slot, eventId: created.id };
+      await validateSlot(tx, input);
+      await tx.performance.create({ data: input });
+    }
+    return created;
+  });
   res.status(201).json({ event });
 });
 

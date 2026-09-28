@@ -90,7 +90,7 @@ model Event {
   data         DateTime      @db.Date
   inizio       DateTime
   fine         DateTime
-  stato        EventStatus   @default(BOZZA)
+  stato        EventStatus   @default(PUBBLICATO)
   note         String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt

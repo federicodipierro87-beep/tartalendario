@@ -20,7 +20,7 @@ const compensoSchema = z
   .transform((v) => (typeof v === 'number' ? v.toFixed(2) : v.replace(',', '.')))
   .nullish();
 
-const PerformanceSchema = z.object({
+export const PerformanceSchema = z.object({
   eventId: z.string().min(1, 'Serata obbligatoria'),
   artistId: z.string().min(1, 'Artista obbligatorio'),
   roomId: z.string().min(1, 'Sala obbligatoria'),
@@ -77,10 +77,10 @@ performancesRouter.get('/performances', requireAuth, async (req, res) => {
   res.json({ performances });
 });
 
-type PerformanceInput = z.infer<typeof PerformanceSchema>;
+export type PerformanceInput = z.infer<typeof PerformanceSchema>;
 
 /** Controlli di coerenza con serata, artista e sala + conflitti, dentro la transazione. */
-async function validateSlot(tx: Prisma.TransactionClient, slot: PerformanceInput, id?: string) {
+export async function validateSlot(tx: Prisma.TransactionClient, slot: PerformanceInput, id?: string) {
   if (slot.fine <= slot.inizio) throw badRequest("L'ora di fine deve essere successiva all'ora di inizio");
   if (slot.fine.getTime() - slot.inizio.getTime() > MAX_DURATION_MS) {
     throw badRequest('Uno slot non può durare più di 24 ore');
