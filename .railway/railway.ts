@@ -16,7 +16,7 @@ export default defineRailway(() => {
     start: "npm start",
     healthcheck: "/health",
     healthcheckTimeout: 120,
-    deploy: { restartPolicyType: "ON_FAILURE", restartPolicyMaxRetries: 5 },
+    deploy: { restartPolicyMaxRetries: 5 }, // restartPolicyType ON_FAILURE è il default
     replicas: { "us-west2": 1 },
     env: {
       DATABASE_URL: ref(Postgres, "DATABASE_URL"),
