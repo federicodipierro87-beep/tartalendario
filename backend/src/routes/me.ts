@@ -6,6 +6,7 @@ import { prisma } from '../lib/prisma.js';
 import { dateOnlyToDate, zDateOnly } from '../lib/time.js';
 import { currentUser, requireAuth } from '../middleware/auth.js';
 import type { Request } from 'express';
+import { assertArtistAvailable } from '../lib/conflicts.js';
 import { performanceInclude } from './performances.js';
 
 /** Endpoint dell'area artista: agiscono sempre sul profilo artista dell'utente autenticato. */
@@ -46,11 +47,16 @@ meRouter.post('/me/performances/:id/respond', async (req, res) => {
   const artistId = myArtistId(req);
   const { risposta, note } = parseBody(req, RespondSchema);
 
-  const performance = await prisma.performance.findUnique({ where: { id: req.params.id } });
+  const performance = await prisma.performance.findUnique({
+    where: { id: req.params.id },
+    include: { artist: true, event: true },
+  });
   if (!performance || performance.artistId !== artistId) throw notFound('Slot non trovato');
   if (performance.stato !== 'PROPOSTO') {
     throw conflict('Puoi rispondere solo agli slot in stato PROPOSTO');
   }
+  // Non si può confermare una data in cui si è segnata un'indisponibilità.
+  if (risposta === 'CONFERMATO') await assertArtistAvailable(prisma, performance.artist, performance.event.data);
 
   const updated = await prisma.performance.update({
     where: { id: performance.id },
