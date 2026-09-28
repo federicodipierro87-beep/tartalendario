@@ -11,8 +11,8 @@ export const performancesRouter = Router();
 
 export const performanceInclude = {
   artist: { select: { id: true, nomeArte: true, tipo: true, genereMusicale: true } },
-  room: { select: { id: true, nome: true } },
-  event: { select: { id: true, titolo: true, stato: true, inizio: true, fine: true, data: true } },
+  venue: { select: { id: true, nome: true, indirizzo: true } },
+  event: { select: { id: true, titolo: true, stato: true, inizio: true, fine: true, data: true, venueId: true } },
 } satisfies Prisma.PerformanceInclude;
 
 const compensoSchema = z
@@ -23,7 +23,6 @@ const compensoSchema = z
 export const PerformanceSchema = z.object({
   eventId: z.string().min(1, 'Serata obbligatoria'),
   artistId: z.string().min(1, 'Artista obbligatorio'),
-  roomId: z.string().min(1, 'Sala obbligatoria'),
   inizio: zInstant,
   fine: zInstant,
   stato: z.enum(PerformanceStatus).optional(), // default PROPOSTO (schema Prisma)
@@ -43,7 +42,7 @@ const ListQuerySchema = z.object({
   to: zInstant.optional(),
   eventId: z.string().optional(),
   artistId: csv(z.string()),
-  roomId: csv(z.string()),
+  venueId: csv(z.string()),
   stato: csv(z.enum(PerformanceStatus)),
   tipo: csv(z.enum(ArtistType)),
 });
@@ -65,7 +64,7 @@ performancesRouter.get('/performances', requireAuth, async (req, res) => {
     where: {
       eventId: q.eventId,
       artistId: artistFilter,
-      roomId: q.roomId ? { in: q.roomId } : undefined,
+      venueId: q.venueId ? { in: q.venueId } : undefined,
       stato: q.stato ? { in: q.stato } : undefined,
       artist: q.tipo ? { tipo: { in: q.tipo } } : undefined,
       fine: q.from ? { gt: q.from } : undefined,
@@ -79,21 +78,22 @@ performancesRouter.get('/performances', requireAuth, async (req, res) => {
 
 export type PerformanceInput = z.infer<typeof PerformanceSchema>;
 
-/** Controlli di coerenza con serata, artista e sala + conflitti, dentro la transazione. */
-export async function validateSlot(tx: Prisma.TransactionClient, slot: PerformanceInput, id?: string) {
+/**
+ * Controlli di coerenza con serata e artista + conflitti, dentro la transazione.
+ * Restituisce il locale della serata, da salvare sullo slot.
+ */
+export async function validateSlot(tx: Prisma.TransactionClient, slot: PerformanceInput, id?: string): Promise<string> {
   if (slot.fine <= slot.inizio) throw badRequest("L'ora di fine deve essere successiva all'ora di inizio");
   if (slot.fine.getTime() - slot.inizio.getTime() > MAX_DURATION_MS) {
     throw badRequest('Uno slot non può durare più di 24 ore');
   }
 
-  const [event, artist, room] = await Promise.all([
-    tx.event.findUnique({ where: { id: slot.eventId } }),
+  const [event, artist] = await Promise.all([
+    tx.event.findUnique({ where: { id: slot.eventId }, include: { venue: true } }),
     tx.artist.findUnique({ where: { id: slot.artistId } }),
-    tx.room.findUnique({ where: { id: slot.roomId } }),
   ]);
   if (!event) throw badRequest('Serata inesistente');
   if (!artist) throw badRequest('Artista inesistente');
-  if (!room) throw badRequest('Sala inesistente');
 
   if (slot.inizio < event.inizio || slot.fine > event.fine) {
     throw badRequest("Lo slot deve essere compreso nell'orario della serata");
@@ -101,17 +101,17 @@ export async function validateSlot(tx: Prisma.TransactionClient, slot: Performan
 
   if (isActiveStatus(slot.stato ?? 'PROPOSTO')) {
     if (!artist.attivo) throw badRequest(`${artist.nomeArte} è disattivato`);
-    if (!room.attiva) throw badRequest(`La sala ${room.nome} è disattivata`);
     if (event.stato === 'ANNULLATO') throw badRequest('La serata è annullata');
-    await assertNoConflicts(tx, { id, ...slot });
+    await assertNoConflicts(tx, { id, ...slot, venueId: event.venueId });
   }
+  return event.venueId;
 }
 
 performancesRouter.post('/performances', requireAuth, requireRole('ADMIN', 'STAFF'), async (req, res) => {
   const data = parseBody(req, PerformanceSchema);
   const performance = await prisma.$transaction(async (tx) => {
-    await validateSlot(tx, data);
-    return tx.performance.create({ data, include: performanceInclude });
+    const venueId = await validateSlot(tx, data);
+    return tx.performance.create({ data: { ...data, venueId }, include: performanceInclude });
   });
   res.status(201).json({ performance });
 });
@@ -125,15 +125,18 @@ performancesRouter.patch('/performances/:id', requireAuth, requireRole('ADMIN', 
     const merged: PerformanceInput = {
       eventId: patch.eventId ?? existing.eventId,
       artistId: patch.artistId ?? existing.artistId,
-      roomId: patch.roomId ?? existing.roomId,
       inizio: patch.inizio ?? existing.inizio,
       fine: patch.fine ?? existing.fine,
       stato: patch.stato ?? existing.stato,
       compenso: patch.compenso === undefined ? existing.compenso?.toString() : patch.compenso,
       note: patch.note === undefined ? existing.note : patch.note,
     };
-    await validateSlot(tx, merged, existing.id);
-    return tx.performance.update({ where: { id: existing.id }, data: patch, include: performanceInclude });
+    const venueId = await validateSlot(tx, merged, existing.id);
+    return tx.performance.update({
+      where: { id: existing.id },
+      data: { ...patch, venueId },
+      include: performanceInclude,
+    });
   });
   res.json({ performance });
 });

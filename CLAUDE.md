@@ -22,4 +22,11 @@
      --to-schema-datamodel prisma/schema.prisma --script \
      > prisma/migrations/<YYYYMMDDHHMMSS>_<nome>/migration.sql
    ```
-3. I vincoli custom (exclusion constraint `btree_gist`, CHECK) sono solo nell'SQL: non rimuoverli.
+3. I vincoli custom (exclusion constraint `btree_gist` per artista, CHECK) sono solo nell'SQL: non rimuoverli.
+4. Per verificare una migrazione senza DB: PGlite (`@electric-sql/pglite` + `pglite-socket`, estensione btree_gist)
+   con `DATABASE_URL=...?sslmode=disable&connection_limit=1&pgbouncer=true`, poi `prisma migrate diff --from-url`.
+
+## Modello
+
+- Le serate hanno un Locale (`Venue`); `Performance.venueId` è una copia del locale della serata,
+  mantenuta dal backend (serve per il controllo sovrapposizioni per locale).

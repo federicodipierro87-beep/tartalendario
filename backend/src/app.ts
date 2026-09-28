@@ -11,8 +11,8 @@ import { healthRouter } from './routes/health.js';
 import { icalRouter } from './routes/ical.js';
 import { meRouter } from './routes/me.js';
 import { performancesRouter } from './routes/performances.js';
-import { roomsRouter } from './routes/rooms.js';
 import { usersRouter } from './routes/users.js';
+import { venuesRouter } from './routes/venues.js';
 
 /** Violazione degli exclusion constraint di non sovrapposizione (SQLSTATE 23P01). */
 function isOverlapViolation(err: unknown): boolean {
@@ -38,7 +38,7 @@ export function createApp() {
   app.use(authRouter);
   app.use(usersRouter);
   app.use(artistsRouter);
-  app.use(roomsRouter);
+  app.use(venuesRouter);
   app.use(eventsRouter);
   app.use(performancesRouter);
   app.use(availabilityRouter);
@@ -68,7 +68,7 @@ export function createApp() {
       }
     }
     if (isOverlapViolation(err)) {
-      res.status(409).json({ error: 'Conflitto: artista o sala già occupati in questo orario' });
+      res.status(409).json({ error: "Conflitto: l'artista ha già uno slot in questo orario" });
       return;
     }
     if (err instanceof SyntaxError && 'body' in err) {

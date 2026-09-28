@@ -76,10 +76,13 @@ model BandProfile {
   technicalRider Json?
 }
 
-model Room {
+// Locale in cui si svolgono le serate (scelto quando si registra la serata).
+model Venue {
   id           String        @id @default(cuid())
   nome         String        @unique
-  attiva       Boolean       @default(true)
+  indirizzo    String?
+  attivo       Boolean       @default(true)
+  events       Event[]
   performances Performance[]
 }
 
@@ -92,23 +95,27 @@ model Event {
   fine         DateTime
   stato        EventStatus   @default(PUBBLICATO)
   note         String?
+  venueId      String
+  venue        Venue         @relation(fields: [venueId], references: [id], onDelete: Restrict)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   performances Performance[]
 
   @@index([data])
+  @@index([venueId, inizio])
 }
 
-// Slot di un artista in una sala durante una serata.
-// Vincoli di non sovrapposizione (artista e sala) definiti via SQL nella migrazione iniziale.
+// Slot di un artista durante una serata.
+// venueId è sempre uguale al locale della serata (copiato dal backend) per i controlli di sovrapposizione.
+// Il vincolo di non sovrapposizione per artista è definito via SQL nella migrazione iniziale.
 model Performance {
   id        String            @id @default(cuid())
   eventId   String
   event     Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
   artistId  String
   artist    Artist            @relation(fields: [artistId], references: [id], onDelete: Restrict)
-  roomId    String
-  room      Room              @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  venueId   String
+  venue     Venue             @relation(fields: [venueId], references: [id], onDelete: Restrict)
   inizio    DateTime
   fine      DateTime
   stato     PerformanceStatus @default(PROPOSTO)
@@ -118,7 +125,7 @@ model Performance {
   updatedAt DateTime          @updatedAt
 
   @@index([artistId, inizio])
-  @@index([roomId, inizio])
+  @@index([venueId, inizio])
   @@index([eventId])
 }
 

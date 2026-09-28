@@ -9,10 +9,11 @@ sale, serate, slot, disponibilità e feed iCal.
 ## Funzionalità
 
 - Login email/password (JWT), ruoli ADMIN / STAFF / ARTIST
-- Anagrafica artisti (DJ e BAND tramite il campo `tipo`), sale, serate e slot
-- Calendario mese / settimana / lista in Europe/Rome, filtri per stato, tipo, sala e artista
-- Controllo conflitti: stesso artista o stessa sala non possono avere slot attivi sovrapposti
-  (controllo applicativo con dettaglio + exclusion constraint PostgreSQL)
+- Anagrafica artisti (DJ e BAND tramite il campo `tipo`), locali, serate e slot
+- Il locale si sceglie quando si registra la serata; in creazione si possono selezionare i DJ (slot divisi equamente)
+- Calendario mese / settimana / lista in Europe/Rome, filtri per stato, tipo, locale e artista
+- Controllo conflitti: stesso artista o stesso locale non possono avere slot attivi sovrapposti
+  (controllo applicativo con dettaglio; per l'artista anche exclusion constraint PostgreSQL)
 - Area artista: conferma/rifiuto degli slot proposti, disponibilità per giorno
 - Feed iCal per artista (`GET /ical/<token>.ics`) da aggiungere a Google/Apple Calendar
 
@@ -21,7 +22,7 @@ sale, serate, slot, disponibilità e feed iCal.
 | Metodo | Percorso | Ruoli |
 |---|---|---|
 | POST | `/auth/login`, GET `/auth/me`, POST `/auth/change-password` | tutti |
-| CRUD | `/artists`, `/events`, `/rooms` (GET anche ARTIST), `/performances` (GET anche ARTIST, solo propri) | ADMIN, STAFF |
+| CRUD | `/artists`, `/events`, `/venues` (GET anche ARTIST), `/performances` (GET anche ARTIST, solo propri) | ADMIN, STAFF |
 | CRUD | `/users` | ADMIN |
 | GET | `/availability` | ADMIN, STAFF |
 | GET/PUT/DELETE | `/me/availability`, POST `/me/performances/:id/respond`, POST `/me/ical-token` | ARTIST |

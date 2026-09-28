@@ -40,7 +40,7 @@ icalRouter.get('/ical/:file', icalLimiter, async (req, res) => {
   const since = DateTime.now().minus({ months: 3 }).toJSDate();
   const performances = await prisma.performance.findMany({
     where: { artistId: artist.id, fine: { gte: since }, stato: { not: 'RIFIUTATO' } },
-    include: { event: true, room: true },
+    include: { event: true, venue: true },
     orderBy: { inizio: 'asc' },
   });
 
@@ -60,17 +60,17 @@ icalRouter.get('/ical/:file', icalLimiter, async (req, res) => {
       end: p.fine,
       stamp: p.updatedAt,
       lastModified: p.updatedAt,
-      summary: `${p.stato === 'PROPOSTO' ? '[DA CONFERMARE] ' : ''}${p.event.titolo} · ${p.room.nome}`,
+      summary: `${p.stato === 'PROPOSTO' ? '[DA CONFERMARE] ' : ''}${p.event.titolo} · ${p.venue.nome}`,
       description: [
         `Serata: ${p.event.titolo}`,
-        `Sala: ${p.room.nome}`,
+        `Locale: ${p.venue.nome}`,
         `Orario: ${orario} (Europe/Rome)`,
         `Stato: ${statusLabel[p.stato]}`,
         p.note ? `Note: ${p.note}` : null,
       ]
         .filter(Boolean)
         .join('\n'),
-      location: p.room.nome,
+      location: [p.venue.nome, p.venue.indirizzo].filter(Boolean).join(', '),
       status: p.event.stato === 'ANNULLATO' ? ICalEventStatus.CANCELLED : statusMap[p.stato],
     });
   }

@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { EventStatus } from '@prisma/client';
+import { EventStatus, type Prisma } from '@prisma/client';
 import { z } from 'zod';
-import { ACTIVE_PERFORMANCE_STATUSES } from '../lib/conflicts.js';
-import { badRequest, notFound, parseBody, parseQuery } from '../lib/http.js';
+import { ACTIVE_PERFORMANCE_STATUSES, assertNoConflicts } from '../lib/conflicts.js';
+import { badRequest, notFound, param, parseBody, parseQuery } from '../lib/http.js';
 import { prisma } from '../lib/prisma.js';
 import { MAX_DURATION_MS, romeDateOf, zInstant } from '../lib/time.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
@@ -17,13 +17,24 @@ const EventBaseSchema = z.object({
   fine: zInstant,
   stato: z.enum(EventStatus).optional(), // default PUBBLICATO (schema Prisma)
   note: z.string().trim().max(5000).nullish(),
+  venueId: z.string().min(1, 'Locale obbligatorio'),
 });
 
 const ListQuerySchema = z.object({
   from: zInstant.optional(),
   to: zInstant.optional(),
   stato: z.enum(EventStatus).optional(),
+  venueId: z.string().optional(),
 });
+
+const venueSelect = { select: { id: true, nome: true, indirizzo: true } } as const;
+
+/** Il locale deve esistere ed essere attivo (salvo che sia già quello della serata). */
+async function assertVenueUsable(tx: Prisma.TransactionClient, venueId: string, currentVenueId?: string) {
+  const venue = await tx.venue.findUnique({ where: { id: venueId } });
+  if (!venue) throw badRequest('Locale inesistente');
+  if (!venue.attivo && venue.id !== currentVenueId) throw badRequest(`Il locale ${venue.nome} è disattivato`);
+}
 
 function assertValidRange(inizio: Date, fine: Date) {
   if (fine <= inizio) throw badRequest("L'ora di fine deve essere successiva all'ora di inizio");
@@ -33,15 +44,16 @@ function assertValidRange(inizio: Date, fine: Date) {
 }
 
 eventsRouter.get('/events', async (req, res) => {
-  const { from, to, stato } = parseQuery(req, ListQuerySchema);
+  const { from, to, stato, venueId } = parseQuery(req, ListQuerySchema);
   const events = await prisma.event.findMany({
     where: {
       stato,
+      venueId,
       // Serate che intersecano l'intervallo richiesto.
       fine: from ? { gt: from } : undefined,
       inizio: to ? { lt: to } : undefined,
     },
-    include: { _count: { select: { performances: true } } },
+    include: { venue: venueSelect, _count: { select: { performances: true } } },
     orderBy: { inizio: 'asc' },
   });
   res.json({ events });
@@ -49,8 +61,11 @@ eventsRouter.get('/events', async (req, res) => {
 
 eventsRouter.get('/events/:id', async (req, res) => {
   const event = await prisma.event.findUnique({
-    where: { id: req.params.id },
-    include: { performances: { include: performanceInclude, orderBy: { inizio: 'asc' } } },
+    where: { id: param(req, 'id') },
+    include: {
+      venue: venueSelect,
+      performances: { include: performanceInclude, orderBy: { inizio: 'asc' } },
+    },
   });
   if (!event) throw notFound('Serata non trovata');
   res.json({ event });
@@ -66,11 +81,12 @@ eventsRouter.post('/events', async (req, res) => {
   const { slots = [], ...data } = parseBody(req, EventCreateSchema);
   assertValidRange(data.inizio, data.fine);
   const event = await prisma.$transaction(async (tx) => {
+    await assertVenueUsable(tx, data.venueId);
     const created = await tx.event.create({ data: { ...data, data: romeDateOf(data.inizio) } });
     for (const slot of slots) {
       const input = { ...slot, eventId: created.id };
-      await validateSlot(tx, input);
-      await tx.performance.create({ data: input });
+      const venueId = await validateSlot(tx, input);
+      await tx.performance.create({ data: { ...input, venueId } });
     }
     return created;
   });
@@ -79,7 +95,7 @@ eventsRouter.post('/events', async (req, res) => {
 
 eventsRouter.patch('/events/:id', async (req, res) => {
   const patch = parseBody(req, EventBaseSchema.partial());
-  const existing = await prisma.event.findUnique({ where: { id: req.params.id } });
+  const existing = await prisma.event.findUnique({ where: { id: param(req, 'id') } });
   if (!existing) throw notFound('Serata non trovata');
 
   const inizio = patch.inizio ?? existing.inizio;
@@ -87,10 +103,21 @@ eventsRouter.patch('/events/:id', async (req, res) => {
   assertValidRange(inizio, fine);
 
   const event = await prisma.$transaction(async (tx) => {
+    if (patch.venueId) await assertVenueUsable(tx, patch.venueId, existing.venueId);
     const updated = await tx.event.update({
       where: { id: existing.id },
       data: { ...patch, data: romeDateOf(inizio) },
     });
+    // Cambio locale: gli slot seguono la serata (con controllo sovrapposizioni nel nuovo locale).
+    if (patch.venueId && patch.venueId !== existing.venueId) {
+      const slots = await tx.performance.findMany({ where: { eventId: existing.id } });
+      for (const s of slots) {
+        if (ACTIVE_PERFORMANCE_STATUSES.includes(s.stato)) {
+          await assertNoConflicts(tx, { ...s, venueId: patch.venueId });
+        }
+      }
+      await tx.performance.updateMany({ where: { eventId: existing.id }, data: { venueId: patch.venueId } });
+    }
     // Annullare una serata annulla anche i suoi slot ancora attivi.
     if (patch.stato === 'ANNULLATO' && existing.stato !== 'ANNULLATO') {
       await tx.performance.updateMany({
@@ -104,6 +131,6 @@ eventsRouter.patch('/events/:id', async (req, res) => {
 });
 
 eventsRouter.delete('/events/:id', async (req, res) => {
-  await prisma.event.delete({ where: { id: req.params.id } });
+  await prisma.event.delete({ where: { id: param(req, 'id') } });
   res.status(204).end();
 });
