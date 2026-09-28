@@ -384,3 +384,247 @@ label.checkbox {
   text-align: center;
   margin: 0;
 }
+
+/* ---------- Pagine ---------- */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.page-header h1,
+.page-header h2 {
+  margin: 0;
+}
+.back-link {
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.auto {
+  width: auto;
+}
+.hint {
+  font-size: 0.9rem;
+  color: var(--muted);
+  background: var(--surface-2);
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+}
+.small {
+  font-size: 0.85rem;
+}
+.nowrap {
+  white-space: nowrap;
+}
+.pre {
+  white-space: pre-line;
+}
+.note {
+  white-space: pre-line;
+}
+.row-link {
+  display: flex;
+  flex-direction: column;
+  color: inherit;
+  text-decoration: none;
+}
+.row-link:hover strong {
+  color: var(--primary);
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.segmented button {
+  font: inherit;
+  background: var(--surface);
+  color: var(--text);
+  border: 0;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+}
+.segmented button.active {
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+
+.status-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* ---------- Tabelle ---------- */
+.table-wrap {
+  padding: 0;
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th,
+.table td {
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.table th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.table tr:last-child td {
+  border-bottom: 0;
+}
+.table tr.inactive {
+  opacity: 0.6;
+}
+.table .actions {
+  text-align: right;
+}
+.table .actions .btn + .btn {
+  margin-left: 0.35rem;
+}
+
+/* ---------- Modale ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(10 5 20 / 55%);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  z-index: 100;
+  overflow-y: auto;
+}
+.modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+.modal-wide {
+  max-width: 720px;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.modal-header h2 {
+  margin: 0;
+}
+.btn-icon {
+  padding: 0.25rem 0.55rem;
+}
+.modal-footer-link {
+  margin-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+}
+.conflicts {
+  margin: 0.4rem 0 0;
+  padding-left: 1.2rem;
+}
+
+/* ---------- Filtri calendario ---------- */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+}
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.filter-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-right: 0.25rem;
+}
+.chip {
+  font: inherit;
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  cursor: pointer;
+}
+.chip.on {
+  background: var(--primary);
+  color: var(--primary-contrast);
+  border-color: transparent;
+}
+
+/* ---------- FullCalendar ---------- */
+.calendar-card {
+  padding: 0.75rem;
+  overflow-x: auto;
+}
+.fc {
+  --fc-border-color: var(--border);
+  --fc-page-bg-color: var(--surface);
+  --fc-neutral-bg-color: var(--surface-2);
+  --fc-list-event-hover-bg-color: var(--surface-2);
+  --fc-today-bg-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  --fc-button-bg-color: var(--surface-2);
+  --fc-button-text-color: var(--text);
+  --fc-button-border-color: var(--border);
+  --fc-button-hover-bg-color: var(--border);
+  --fc-button-hover-border-color: var(--border);
+  --fc-button-active-bg-color: var(--primary);
+  --fc-button-active-border-color: var(--primary);
+  font-size: 0.9rem;
+}
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  color: var(--primary-contrast);
+}
+.fc .fc-toolbar-title {
+  font-size: 1.2rem;
+  text-transform: capitalize;
+}
+.fc .fc-event {
+  cursor: pointer;
+}
+.fc .fc-serata {
+  border-width: 2px;
+  border-style: dashed;
+  font-weight: 600;
+}
+.fc .fc-serata .fc-event-main,
+.fc .fc-serata .fc-event-title,
+.fc .fc-serata .fc-event-time {
+  color: var(--text);
+}
+.fc-daygrid-event.fc-serata .fc-daygrid-event-dot {
+  display: none;
+}
+@media (max-width: 700px) {
+  .fc .fc-toolbar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
