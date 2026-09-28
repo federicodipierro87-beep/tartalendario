@@ -21,7 +21,7 @@ export default defineRailway(() => {
     env: {
       DATABASE_URL: ref(Postgres, "DATABASE_URL"),
       JWT_SECRET: preserve(),
-      CORS_ORIGIN: "http://localhost:5173",
+      CORS_ORIGIN: "https://tartalendario.netlify.app",
       PUBLIC_API_URL: "https://${{RAILWAY_PUBLIC_DOMAIN}}",
       ADMIN_EMAIL: "federico.dipierro87@gmail.com",
       ADMIN_PASSWORD: preserve(),

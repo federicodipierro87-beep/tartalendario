@@ -1,5 +1,8 @@
 # Tartalendario
 
+- App: https://tartalendario.netlify.app
+- API: https://tartalendario-production.up.railway.app (health: `/health`)
+
 Calendario condiviso per gestire le serate della discoteca: artisti (DJ oggi, band domani),
 sale, serate, slot, disponibilità e feed iCal.
 
