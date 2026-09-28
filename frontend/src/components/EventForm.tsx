@@ -22,7 +22,6 @@ export function EventForm({ event, defaultDate, onSaved, onCancel }: Props) {
   const start = event ? isoToRomeParts(event.inizio) : null;
   const end = event ? isoToRomeParts(event.fine) : null;
 
-  const [titolo, setTitolo] = useState(event?.titolo ?? '');
   const [data, setData] = useState(start?.date ?? defaultDate ?? todayRome());
   const [oraInizio, setOraInizio] = useState(start?.time ?? '23:00');
   const [oraFine, setOraFine] = useState(end?.time ?? '05:00');
@@ -48,7 +47,7 @@ export function EventForm({ event, defaultDate, onSaved, onCancel }: Props) {
     setBusy(true);
     setError(null);
     try {
-      const body = { titolo, venueId: selectedVenueId, inizio, fine, stato, note: note || null };
+      const body = { venueId: selectedVenueId, inizio, fine, stato, note: note || null };
       const r = event
         ? await api.patch<{ event: EventItem }>(`/events/${event.id}`, body)
         : await api.post<{ event: EventItem }>('/events', { ...body, slots: splitLineup(lineup, inizio, fine) });
@@ -62,10 +61,6 @@ export function EventForm({ event, defaultDate, onSaved, onCancel }: Props) {
 
   return (
     <form className="form" onSubmit={onSubmit}>
-      <label>
-        Titolo
-        <input value={titolo} onChange={(e) => setTitolo(e.target.value)} placeholder="es. Sabato Notte" required />
-      </label>
       <label>
         Locale
         <select value={selectedVenueId} onChange={(e) => setVenueId(e.target.value)} required disabled={!venues.data}>
@@ -84,11 +79,11 @@ export function EventForm({ event, defaultDate, onSaved, onCancel }: Props) {
         <div className="hint">Cambiando locale, anche gli slot della serata verranno spostati nel nuovo locale.</div>
       )}
       {!event && <LineupPicker value={lineup} onChange={setLineup} inizio={inizio} fine={fine} />}
-      <div className="form-row">
-        <label>
-          Data
-          <input type="date" value={data} onChange={(e) => setData(e.target.value)} required />
-        </label>
+      <label>
+        Data
+        <input type="date" value={data} onChange={(e) => setData(e.target.value)} required />
+      </label>
+      <div className="form-row-2">
         <label>
           Inizio
           <input type="time" value={oraInizio} onChange={(e) => setOraInizio(e.target.value)} required />

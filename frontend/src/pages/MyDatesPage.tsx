@@ -118,9 +118,9 @@ function SlotList({
       {slots.map((p) => (
         <li key={p.id}>
           <div className="grow">
-            <strong>{p.event.titolo}</strong>
+            <strong>{[p.venue.nome, p.event.titolo].filter(Boolean).join(' · ')}</strong>
             <div className="muted">
-              {formatDateOnly(p.event.data)} · {formatRange(p.inizio, p.fine)} · {p.venue.nome}
+              {formatDateOnly(p.event.data)} · {formatRange(p.inizio, p.fine)}
             </div>
             {p.compenso && (
               <div className="small">Compenso: € {Number(p.compenso).toLocaleString('it-IT', { minimumFractionDigits: 2 })}</div>
@@ -177,8 +177,9 @@ function RespondModal({
     <Modal title={conferma ? 'Conferma data' : 'Rifiuta data'} onClose={onClose}>
       <div className="form">
         <div className="hint">
-          {performance.event.titolo} · {formatDateOnly(performance.event.data)} ·{' '}
-          {formatRange(performance.inizio, performance.fine)} · {performance.venue.nome}
+          {[performance.venue.nome, performance.event.titolo].filter(Boolean).join(' · ')} ·{' '}
+          {formatDateOnly(performance.event.data)} ·{' '}
+          {formatRange(performance.inizio, performance.fine)}
         </div>
         <label>
           Messaggio per lo staff (facoltativo)

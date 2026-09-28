@@ -37,3 +37,18 @@ export const eventStatusColor: Record<EventStatus, { bg: string; fg: string }> =
   PUBBLICATO: { bg: '#6d28d9', fg: '#ffffff' },
   ANNULLATO: { bg: '#6b7280', fg: '#ffffff' },
 };
+
+/**
+ * Nome con cui mostrare una serata: il titolo se presente, altrimenti i DJ in line-up,
+ * altrimenti il locale.
+ */
+export function eventName(ev: {
+  titolo: string | null;
+  venue?: { nome: string } | null;
+  performances?: { artist: { nomeArte: string } }[];
+}): string {
+  if (ev.titolo) return ev.titolo;
+  const djs = [...new Set((ev.performances ?? []).map((p) => p.artist.nomeArte))];
+  if (djs.length) return djs.join(' + ');
+  return ev.venue?.nome ?? 'Serata';
+}

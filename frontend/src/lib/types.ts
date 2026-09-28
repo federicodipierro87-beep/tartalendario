@@ -51,7 +51,7 @@ export type VenueSummary = Pick<Venue, 'id' | 'nome' | 'indirizzo'>;
 
 export interface EventItem {
   id: string;
-  titolo: string;
+  titolo: string | null;
   data: string;
   inizio: string;
   fine: string;

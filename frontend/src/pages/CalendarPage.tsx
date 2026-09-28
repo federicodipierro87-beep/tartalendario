@@ -9,6 +9,7 @@ import { api, errorMessage } from '../lib/api';
 import {
   ARTIST_TYPES,
   artistTypeLabel,
+  eventName,
   eventStatusColor,
   PERFORMANCE_STATUSES,
   performanceStatusColor,
@@ -41,6 +42,8 @@ export function CalendarPage() {
   const [slotModal, setSlotModal] = useState<Performance | null>(null);
   const [newEventDate, setNewEventDate] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
+  // Il nome del locale serve nel titolo solo se ce n'è più di uno.
+  const multiVenue = (lists.data?.venues.length ?? 0) > 1;
 
   const loadEvents = useCallback(
     async (info: EventSourceFuncArg): Promise<EventInput[]> => {
@@ -54,16 +57,17 @@ export function CalendarPage() {
             stato: stati,
             tipo: tipi,
           }),
-          showEvents
+          showEvents && !artistId
             ? api
                 .get<{ events: EventItem[] }>('/events', { from: info.startStr, to: info.endStr })
                 .then((r) => ({ events: venueIds.length ? r.events.filter((e) => venueIds.includes(e.venueId)) : r.events }))
             : Promise.resolve({ events: [] as EventItem[] }),
         ]);
         setError(null);
-        const serate: EventInput[] = evs.events.map((ev) => ({
+        // Le serate con DJ sono già rappresentate dai loro slot: mostriamo a parte solo quelle ancora senza DJ.
+        const serate: EventInput[] = evs.events.filter((ev) => (ev.performances ?? []).length === 0).map((ev) => ({
           id: `event-${ev.id}`,
-          title: `★ ${ev.titolo}${ev.venue ? ` · ${ev.venue.nome}` : ''}`,
+          title: `★ ${eventName(ev)} — nessun DJ`,
           start: ev.inizio,
           end: ev.fine,
           backgroundColor: 'transparent',
@@ -74,7 +78,7 @@ export function CalendarPage() {
         }));
         const slots: EventInput[] = perf.performances.map((p) => ({
           id: p.id,
-          title: `${p.artist.nomeArte} · ${p.venue.nome}`,
+          title: multiVenue ? `${p.artist.nomeArte} · ${p.venue.nome}` : p.artist.nomeArte,
           start: p.inizio,
           end: p.fine,
           backgroundColor: performanceStatusColor[p.stato].bg,
@@ -90,7 +94,7 @@ export function CalendarPage() {
     },
     // version forza il ricaricamento dopo un salvataggio
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [venueIds, artistId, stati, tipi, showEvents, version],
+    [venueIds, artistId, stati, tipi, showEvents, multiVenue, version],
   );
 
   const eventSources = useMemo(() => [{ events: loadEvents }], [loadEvents]);
@@ -156,7 +160,7 @@ export function CalendarPage() {
           </select>
           <label className="checkbox">
             <input type="checkbox" checked={showEvents} onChange={(e) => setShowEvents(e.target.checked)} />
-            Mostra serate
+            Mostra serate senza DJ
           </label>
         </div>
       </div>

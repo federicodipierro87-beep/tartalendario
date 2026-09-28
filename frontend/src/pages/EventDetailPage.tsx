@@ -5,7 +5,7 @@ import { Modal } from '../components/Modal';
 import { SlotForm } from '../components/SlotForm';
 import { EventStatusBadge, PerformanceStatusBadge } from '../components/StatusBadge';
 import { api, errorMessage } from '../lib/api';
-import { artistTypeLabel } from '../lib/labels';
+import { artistTypeLabel, eventName } from '../lib/labels';
 import { formatDateOnly, formatRange } from '../lib/time';
 import type { EventItem, Performance } from '../lib/types';
 import { useAsync } from '../lib/useAsync';
@@ -25,7 +25,7 @@ export function EventDetailPage() {
   if (!event) return <div className="page-loading">Caricamento…</div>;
 
   async function deleteEvent() {
-    if (!event || !confirm(`Eliminare la serata "${event.titolo}" e tutti i suoi slot?`)) return;
+    if (!event || !confirm(`Eliminare la serata "${eventName(event)}" e tutti i suoi slot?`)) return;
     try {
       await api.delete(`/events/${event.id}`);
       navigate('/serate');
@@ -45,6 +45,7 @@ export function EventDetailPage() {
   }
 
   const slots = event.performances ?? [];
+  const activeSlots = slots.filter((p) => p.stato === 'PROPOSTO' || p.stato === 'CONFERMATO');
 
   return (
     <div className="page">
@@ -54,7 +55,7 @@ export function EventDetailPage() {
       <div className="page-header">
         <div>
           <h1>
-            {event.titolo} <EventStatusBadge stato={event.stato} />
+            {eventName({ ...event, performances: activeSlots })} <EventStatusBadge stato={event.stato} />
           </h1>
           <div className="muted">
             {formatDateOnly(event.data)} · {formatRange(event.inizio, event.fine)}

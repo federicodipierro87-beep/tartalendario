@@ -5,7 +5,7 @@ import { EventForm } from '../components/EventForm';
 import { Modal } from '../components/Modal';
 import { EventStatusBadge } from '../components/StatusBadge';
 import { api } from '../lib/api';
-import { EVENT_STATUSES, eventStatusLabel } from '../lib/labels';
+import { EVENT_STATUSES, eventName, eventStatusLabel } from '../lib/labels';
 import { formatDateOnly, formatRange, TIMEZONE } from '../lib/time';
 import type { EventItem, EventStatus } from '../lib/types';
 import { useAsync } from '../lib/useAsync';
@@ -65,7 +65,7 @@ export function EventsPage() {
           {data.map((ev) => (
             <li key={ev.id}>
               <Link to={`/serate/${ev.id}`} className="grow row-link">
-                <strong>{ev.titolo}</strong>
+                <strong>{eventName(ev)}</strong>
                 <span className="muted">
                   {formatDateOnly(ev.data)} · {formatRange(ev.inizio, ev.fine)}
                   {ev.venue && ` · ${ev.venue.nome}`}

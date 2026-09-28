@@ -107,8 +107,8 @@ export function SlotForm({ event, venue, slot, onSaved, onCancel }: Props) {
   return (
     <form className="form" onSubmit={onSubmit}>
       <div className="hint">
-        {event.titolo} · {formatDateOnly(event.data)} · {formatRange(event.inizio, event.fine)}
-        {(venue ?? slot?.venue) && ` · ${(venue ?? slot?.venue)!.nome}`}
+        {[event.titolo, (venue ?? slot?.venue)?.nome].filter(Boolean).join(' · ')} · {formatDateOnly(event.data)} ·{' '}
+        {formatRange(event.inizio, event.fine)}
       </div>
       {lists.error && <div className="alert alert-error">{lists.error}</div>}
       <div className="form-row">
@@ -130,7 +130,7 @@ export function SlotForm({ event, venue, slot, onSaved, onCancel }: Props) {
           {availability.data.note ? ` — ${availability.data.note}` : ''}
         </div>
       )}
-      <div className="form-row">
+      <div className="form-row-2">
         <label>
           Inizio
           <input type="time" value={oraInizio} onChange={(e) => setOraInizio(e.target.value)} required />
@@ -139,6 +139,8 @@ export function SlotForm({ event, venue, slot, onSaved, onCancel }: Props) {
           Fine
           <input type="time" value={oraFine} onChange={(e) => setOraFine(e.target.value)} required />
         </label>
+      </div>
+      <div className="form-row-2">
         <label>
           Stato
           <select value={stato} onChange={(e) => setStato(e.target.value as PerformanceStatus)}>

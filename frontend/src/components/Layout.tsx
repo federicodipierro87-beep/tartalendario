@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, Outlet } from 'react-router';
+import { Link, NavLink, Outlet } from 'react-router';
 import { useAuth } from '../auth/AuthContext';
 import { roleLabel } from '../lib/labels';
 import type { Role } from '../lib/types';
@@ -31,10 +31,10 @@ export function Layout() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <div className="brand">
+        <Link to="/" className="brand" aria-label="Vai al calendario" onClick={() => setMenuOpen(false)}>
           <img src="/favicon.svg" alt="" width={28} height={28} />
           <span>Tartalendario</span>
-        </div>
+        </Link>
         <button
           className="menu-toggle"
           aria-expanded={menuOpen}

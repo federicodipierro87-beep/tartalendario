@@ -45,7 +45,7 @@ export function AvailabilityCalendar() {
             .filter((p) => p.stato === 'CONFERMATO' || p.stato === 'PROPOSTO')
             .map((p) => ({
               id: p.id,
-              title: `${p.event.titolo} · ${p.venue.nome} (${p.stato === 'PROPOSTO' ? 'proposta' : 'confermata'})`,
+              title: `${p.venue.nome} (${p.stato === 'PROPOSTO' ? 'da confermare' : 'confermata'})`,
               start: p.inizio,
               end: p.fine,
               backgroundColor: performanceStatusColor[p.stato].bg,
