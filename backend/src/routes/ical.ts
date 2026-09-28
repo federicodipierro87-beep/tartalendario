@@ -60,9 +60,9 @@ icalRouter.get('/ical/:file', icalLimiter, async (req, res) => {
       end: p.fine,
       stamp: p.updatedAt,
       lastModified: p.updatedAt,
-      summary: `${p.stato === 'PROPOSTO' ? '[DA CONFERMARE] ' : ''}${p.event.titolo} · ${p.venue.nome}`,
+      summary: `${p.stato === 'PROPOSTO' ? '[DA CONFERMARE] ' : ''}${p.venue.nome}${p.event.titolo ? ` · ${p.event.titolo}` : ''}`,
       description: [
-        `Serata: ${p.event.titolo}`,
+        p.event.titolo ? `Serata: ${p.event.titolo}` : null,
         `Locale: ${p.venue.nome}`,
         `Orario: ${orario} (Europe/Rome)`,
         `Stato: ${statusLabel[p.stato]}`,

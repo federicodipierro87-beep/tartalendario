@@ -12,7 +12,13 @@ export const eventsRouter = Router();
 eventsRouter.use('/events', requireAuth, requireRole('ADMIN', 'STAFF'));
 
 const EventBaseSchema = z.object({
-  titolo: z.string().trim().min(1, 'Titolo obbligatorio').max(200),
+  // Facoltativo: nel calendario la serata è identificata dai DJ e dal locale.
+  titolo: z
+    .string()
+    .trim()
+    .max(200)
+    .nullish()
+    .transform((v) => (v === '' ? null : v)),
   inizio: zInstant,
   fine: zInstant,
   stato: z.enum(EventStatus).optional(), // default PUBBLICATO (schema Prisma)
@@ -53,7 +59,16 @@ eventsRouter.get('/events', async (req, res) => {
       fine: from ? { gt: from } : undefined,
       inizio: to ? { lt: to } : undefined,
     },
-    include: { venue: venueSelect, _count: { select: { performances: true } } },
+    include: {
+      venue: venueSelect,
+      _count: { select: { performances: true } },
+      // Line-up (slot attivi) per identificare la serata con i nomi dei DJ.
+      performances: {
+        where: { stato: { in: ACTIVE_PERFORMANCE_STATUSES } },
+        select: { artist: { select: { nomeArte: true } } },
+        orderBy: { inizio: 'asc' },
+      },
+    },
     orderBy: { inizio: 'asc' },
   });
   res.json({ events });

@@ -44,7 +44,7 @@ export async function assertNoConflicts(tx: Prisma.TransactionClient, slot: Slot
     motivo: p.artistId === slot.artistId ? 'ARTISTA' : 'LOCALE',
     artista: p.artist.nomeArte,
     locale: p.venue.nome,
-    serata: p.event.titolo,
+    serata: p.event.titolo ?? p.venue.nome,
     inizio: p.inizio,
     fine: p.fine,
     stato: p.stato,
