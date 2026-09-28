@@ -6,6 +6,7 @@ sale, serate, slot, disponibilità e feed iCal.
 ## Struttura
 
 ```
+.railway/          Infrastruttura Railway come codice
 backend/            API REST — Node.js, TypeScript, Express, Prisma, PostgreSQL (deploy: Railway)
 frontend/           SPA — React, Vite, TypeScript, FullCalendar (deploy: Netlify)
 .github/workflows/  CI: lint + build di backend e frontend a ogni push
@@ -21,10 +22,17 @@ Non esiste un ambiente locale di riferimento: ogni modifica si verifica dopo il 
 
 ### Backend (Railway)
 
-- Root Directory del servizio: `backend`
-- Configurazione in `backend/railway.json` (in Railway: Settings → Config-as-code → `/backend/railway.json`)
-- All'avvio vengono eseguite le migrazioni (`prisma migrate deploy`) e il seed dell'utente admin
-- Health check: `GET /health`
+La configurazione dell'infrastruttura è in `.railway/railway.ts` (Railway Infrastructure as Code):
+Root Directory `/backend`, build, pre-deploy (`prisma migrate deploy`), health check `GET /health`,
+variabili non segrete. I segreti (`JWT_SECRET`, `ADMIN_PASSWORD`) si impostano da dashboard o CLI.
+
+```bash
+npm install            # nella root: installa l'SDK "railway"
+railway config plan    # anteprima delle modifiche
+railway config apply   # applica
+```
+
+Il deploy parte solo quando la GitHub Action "CI" è verde.
 
 | Variabile | Descrizione |
 |---|---|

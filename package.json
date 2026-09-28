@@ -1,0 +1,13 @@
+{
+  "name": "tartalendario",
+  "private": true,
+  "description": "Monorepo Tartalendario. Questo package serve solo per l'infrastruttura Railway (.railway/railway.ts).",
+  "type": "module",
+  "scripts": {
+    "railway:plan": "railway config plan",
+    "railway:apply": "railway config apply"
+  },
+  "devDependencies": {
+    "railway": "^3.11.0"
+  }
+}
