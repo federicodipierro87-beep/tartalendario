@@ -628,3 +628,65 @@ label.checkbox {
     gap: 0.5rem;
   }
 }
+
+/* ---------- Area artista / disponibilità ---------- */
+.legend {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.legend i {
+  display: inline-block;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 3px;
+  vertical-align: -1px;
+  margin-right: 0.3rem;
+  border: 1px solid var(--border);
+}
+.slot-list li {
+  align-items: flex-start;
+}
+.availability-grid th,
+.availability-grid td {
+  padding: 0.35rem 0.3rem;
+  text-align: center;
+  font-size: 0.8rem;
+  min-width: 1.9rem;
+}
+.availability-grid th.weekend {
+  color: var(--primary);
+}
+.availability-grid .sticky-col {
+  position: sticky;
+  left: 0;
+  background: var(--surface);
+  text-align: left;
+  z-index: 1;
+  min-width: 10rem;
+}
+.av-cell {
+  background: var(--surface-2);
+  font-weight: 700;
+}
+.av-cell.yes {
+  background: color-mix(in srgb, #16a34a 25%, transparent);
+  color: #15803d;
+}
+.av-cell.no {
+  background: color-mix(in srgb, #dc2626 22%, transparent);
+  color: #b91c1c;
+}
+.month-label {
+  text-transform: capitalize;
+  min-width: 9rem;
+}
+.fc .fc-bg-event {
+  opacity: 0.35;
+}
+.fc .fc-bg-event .fc-event-title {
+  font-size: 0.75rem;
+  color: var(--text);
+}

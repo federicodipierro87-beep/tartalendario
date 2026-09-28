@@ -3,11 +3,13 @@ import { AuthProvider, useAuth } from './auth/AuthContext';
 import { RequireAuth } from './auth/RequireAuth';
 import { Layout } from './components/Layout';
 import { ArtistsPage } from './pages/ArtistsPage';
+import { AvailabilityPage } from './pages/AvailabilityPage';
 import { CalendarPage } from './pages/CalendarPage';
-import { ComingSoonPage } from './pages/ComingSoonPage';
 import { EventDetailPage } from './pages/EventDetailPage';
 import { EventsPage } from './pages/EventsPage';
 import { LoginPage } from './pages/LoginPage';
+import { MyAvailabilityPage } from './pages/MyAvailabilityPage';
+import { MyDatesPage } from './pages/MyDatesPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { RoomsPage } from './pages/RoomsPage';
 import { UsersPage } from './pages/UsersPage';
@@ -40,10 +42,10 @@ export default function App() {
             <Route path="serate/:id" element={<RequireAuth roles={[...staff]}><EventDetailPage /></RequireAuth>} />
             <Route path="artisti" element={<RequireAuth roles={[...staff]}><ArtistsPage /></RequireAuth>} />
             <Route path="sale" element={<RequireAuth roles={[...staff]}><RoomsPage /></RequireAuth>} />
-            <Route path="disponibilita" element={<RequireAuth roles={[...staff]}><ComingSoonPage title="Disponibilità" /></RequireAuth>} />
+            <Route path="disponibilita" element={<RequireAuth roles={[...staff]}><AvailabilityPage /></RequireAuth>} />
             <Route path="utenti" element={<RequireAuth roles={['ADMIN']}><UsersPage /></RequireAuth>} />
-            <Route path="le-mie-date" element={<RequireAuth roles={['ARTIST']}><ComingSoonPage title="Le mie date" /></RequireAuth>} />
-            <Route path="la-mia-disponibilita" element={<RequireAuth roles={['ARTIST']}><ComingSoonPage title="La mia disponibilità" /></RequireAuth>} />
+            <Route path="le-mie-date" element={<RequireAuth roles={['ARTIST']}><MyDatesPage /></RequireAuth>} />
+            <Route path="la-mia-disponibilita" element={<RequireAuth roles={['ARTIST']}><MyAvailabilityPage /></RequireAuth>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
