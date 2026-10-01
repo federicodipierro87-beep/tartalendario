@@ -25,7 +25,7 @@ export const PerformanceSchema = z.object({
   artistId: z.string().min(1, 'Artista obbligatorio'),
   inizio: zInstant,
   fine: zInstant,
-  stato: z.enum(PerformanceStatus).optional(), // default PROPOSTO (schema Prisma)
+  stato: z.enum(PerformanceStatus).optional(), // default CONFERMATO (schema Prisma)
   compenso: compensoSchema,
   note: z.string().trim().max(5000).nullish(),
 });
@@ -99,7 +99,7 @@ export async function validateSlot(tx: Prisma.TransactionClient, slot: Performan
     throw badRequest("Lo slot deve essere compreso nell'orario della serata");
   }
 
-  if (isActiveStatus(slot.stato ?? 'PROPOSTO')) {
+  if (isActiveStatus(slot.stato ?? 'CONFERMATO')) {
     if (!artist.attivo) throw badRequest(`${artist.nomeArte} è disattivato`);
     if (event.stato === 'ANNULLATO') throw badRequest('La serata è annullata');
     await assertArtistAvailable(tx, artist, event.data);

@@ -44,7 +44,7 @@ export function SlotForm({ event, venue, slot, onSaved, onCancel }: Props) {
   const [artistId, setArtistId] = useState(slot?.artistId ?? '');
   const [oraInizio, setOraInizio] = useState(isoToRomeParts(slot?.inizio ?? event.inizio).time);
   const [oraFine, setOraFine] = useState(isoToRomeParts(slot?.fine ?? event.fine).time);
-  const [stato, setStato] = useState<PerformanceStatus>(slot?.stato ?? 'PROPOSTO');
+  const [stato, setStato] = useState<PerformanceStatus>(slot?.stato ?? 'CONFERMATO');
   const [compenso, setCompenso] = useState(slot?.compenso ?? '');
   const [note, setNote] = useState(slot?.note ?? '');
   const [error, setError] = useState<string | null>(null);
