@@ -32,9 +32,10 @@ export const performanceStatusColor: Record<PerformanceStatus, { bg: string; fg:
   ANNULLATO: { bg: '#6b7280', fg: '#ffffff' },
 };
 
+/** Colori per stato della serata: nel calendario colorano anche gli slot attivi della serata. */
 export const eventStatusColor: Record<EventStatus, { bg: string; fg: string }> = {
-  BOZZA: { bg: '#a78bfa', fg: '#1e0a3c' },
-  PUBBLICATO: { bg: '#6d28d9', fg: '#ffffff' },
+  BOZZA: { bg: '#f59e0b', fg: '#1f1300' },
+  PUBBLICATO: { bg: '#16a34a', fg: '#ffffff' },
   ANNULLATO: { bg: '#6b7280', fg: '#ffffff' },
 };
 

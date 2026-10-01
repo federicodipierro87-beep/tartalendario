@@ -23,6 +23,10 @@ import { useAsync } from '../lib/useAsync';
 
 const UNAVAILABLE_COLOR = '#dc2626';
 
+function isActiveSlot(stato: PerformanceStatus): boolean {
+  return stato === 'PROPOSTO' || stato === 'CONFERMATO';
+}
+
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 }
@@ -95,16 +99,21 @@ export function CalendarPage() {
           classNames: ['fc-serata', `fc-serata-${ev.stato.toLowerCase()}`],
           extendedProps: { kind: 'event', eventId: ev.id },
         }));
-        const slots: EventInput[] = perf.performances.map((p) => ({
-          id: p.id,
-          title: multiVenue ? `${p.artist.nomeArte} · ${p.venue.nome}` : p.artist.nomeArte,
-          start: p.inizio,
-          end: p.fine,
-          backgroundColor: performanceStatusColor[p.stato].bg,
-          borderColor: performanceStatusColor[p.stato].bg,
-          textColor: performanceStatusColor[p.stato].fg,
-          extendedProps: { kind: 'slot', performance: p },
-        }));
+        // Gli slot attivi prendono il colore della serata (bozza/pubblicata);
+        // quelli rifiutati o annullati mantengono il colore del proprio stato.
+        const slots: EventInput[] = perf.performances.map((p) => {
+          const color = isActiveSlot(p.stato) ? eventStatusColor[p.event.stato] : performanceStatusColor[p.stato];
+          return {
+            id: p.id,
+            title: multiVenue ? `${p.artist.nomeArte} · ${p.venue.nome}` : p.artist.nomeArte,
+            start: p.inizio,
+            end: p.fine,
+            backgroundColor: color.bg,
+            borderColor: color.bg,
+            textColor: color.fg,
+            extendedProps: { kind: 'slot', performance: p },
+          };
+        });
         // Indisponibilità: nome del DJ in rosso sul giorno.
         const indisponibili: EventInput[] = unavailable.map((a) => ({
           id: `unavailable-${a.id}`,
