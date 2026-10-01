@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { EventInput, EventSourceFuncArg } from '@fullcalendar/core';
+import { useAuth } from '../auth/AuthContext';
 import { EventForm } from '../components/EventForm';
 import { Modal } from '../components/Modal';
 import { NightCalendar } from '../components/NightCalendar';
@@ -28,6 +29,8 @@ function toggle<T>(list: T[], value: T): T[] {
 
 export function CalendarPage() {
   const navigate = useNavigate();
+  // Le indisponibilità degli artisti nel calendario sono visibili solo all'amministratore.
+  const canSeeUnavailable = useAuth().hasRole('ADMIN');
   const lists = useAsync(() =>
     Promise.all([api.get<{ venues: Venue[] }>('/venues'), api.get<{ artists: Artist[] }>('/artists')]).then(
       ([v, a]) => ({ venues: v.venues, artists: a.artists }),
@@ -69,7 +72,7 @@ export function CalendarPage() {
                 .get<{ events: EventItem[] }>('/events', { from: info.startStr, to: info.endStr })
                 .then((r) => ({ events: venueIds.length ? r.events.filter((e) => venueIds.includes(e.venueId)) : r.events }))
             : Promise.resolve({ events: [] as EventItem[] }),
-          showUnavailable
+          canSeeUnavailable && showUnavailable
             ? api
                 .get<{ availabilities: Availability[] }>('/availability', {
                   from: info.startStr.slice(0, 10),
@@ -122,7 +125,7 @@ export function CalendarPage() {
     },
     // version forza il ricaricamento dopo un salvataggio
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [venueIds, artistId, stati, tipi, showEvents, showUnavailable, multiVenue, version],
+    [venueIds, artistId, stati, tipi, showEvents, showUnavailable, canSeeUnavailable, multiVenue, version],
   );
 
   const eventSources = useMemo(() => [{ events: loadEvents }], [loadEvents]);
@@ -210,10 +213,12 @@ Rimuovere l'indisponibilità?`)) return;
             <input type="checkbox" checked={showEvents} onChange={(e) => setShowEvents(e.target.checked)} />
             Mostra serate senza DJ
           </label>
-          <label className="checkbox">
-            <input type="checkbox" checked={showUnavailable} onChange={(e) => setShowUnavailable(e.target.checked)} />
-            Mostra indisponibilità DJ
-          </label>
+          {canSeeUnavailable && (
+            <label className="checkbox">
+              <input type="checkbox" checked={showUnavailable} onChange={(e) => setShowUnavailable(e.target.checked)} />
+              Mostra indisponibilità DJ
+            </label>
+          )}
         </div>
       </div>
 
@@ -260,11 +265,13 @@ Rimuovere l'indisponibilità?`)) return;
       )}
       {newEventDate !== null && (
         <Modal title={unavailableMode ? 'Indisponibilità DJ' : 'Nuova serata'} onClose={() => setNewEventDate(null)}>
-          <label className="checkbox mode-flag">
-            <input type="checkbox" checked={unavailableMode} onChange={(e) => setUnavailableMode(e.target.checked)} />
-            Indisponibilità (segna uno o più DJ come non disponibili)
-          </label>
-          {unavailableMode ? (
+          {canSeeUnavailable && (
+            <label className="checkbox mode-flag">
+              <input type="checkbox" checked={unavailableMode} onChange={(e) => setUnavailableMode(e.target.checked)} />
+              Indisponibilità (segna uno o più DJ come non disponibili)
+            </label>
+          )}
+          {canSeeUnavailable && unavailableMode ? (
             <UnavailabilityForm
               defaultDate={newEventDate || undefined}
               onCancel={() => setNewEventDate(null)}
