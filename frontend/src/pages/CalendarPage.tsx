@@ -23,10 +23,6 @@ import { useAsync } from '../lib/useAsync';
 
 const UNAVAILABLE_COLOR = '#dc2626';
 
-function isActiveSlot(stato: PerformanceStatus): boolean {
-  return stato === 'PROPOSTO' || stato === 'CONFERMATO';
-}
-
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 }
@@ -43,7 +39,7 @@ export function CalendarPage() {
 
   const [venueIds, setVenueIds] = useState<string[]>([]);
   const [artistId, setArtistId] = useState('');
-  const [stati, setStati] = useState<PerformanceStatus[]>(['PROPOSTO', 'CONFERMATO']);
+  const [stati, setStati] = useState<PerformanceStatus[]>(['CONFERMATO']);
   const [tipi, setTipi] = useState<ArtistType[]>([]);
   const [showEvents, setShowEvents] = useState(true);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -99,10 +95,10 @@ export function CalendarPage() {
           classNames: ['fc-serata', `fc-serata-${ev.stato.toLowerCase()}`],
           extendedProps: { kind: 'event', eventId: ev.id },
         }));
-        // Gli slot attivi prendono il colore della serata (bozza/pubblicata);
+        // Gli slot confermati prendono il colore della serata (bozza/pubblicata);
         // quelli rifiutati o annullati mantengono il colore del proprio stato.
         const slots: EventInput[] = perf.performances.map((p) => {
-          const color = isActiveSlot(p.stato) ? eventStatusColor[p.event.stato] : performanceStatusColor[p.stato];
+          const color = p.stato === 'CONFERMATO' ? eventStatusColor[p.event.stato] : performanceStatusColor[p.stato];
           return {
             id: p.id,
             title: multiVenue ? `${p.artist.nomeArte} · ${p.venue.nome}` : p.artist.nomeArte,

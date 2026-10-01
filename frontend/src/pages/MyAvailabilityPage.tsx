@@ -44,10 +44,10 @@ export function AvailabilityCalendar() {
             title: a.disponibile ? 'Disponibile' : 'Non disponibile',
           })),
           ...perf.performances
-            .filter((p) => p.stato === 'CONFERMATO' || p.stato === 'PROPOSTO')
+            .filter((p) => p.stato === 'CONFERMATO')
             .map((p) => ({
               id: p.id,
-              title: `${p.venue.nome} (${p.stato === 'PROPOSTO' ? 'da confermare' : 'confermata'})`,
+              title: p.venue.nome,
               start: p.inizio,
               end: p.fine,
               backgroundColor: performanceStatusColor[p.stato].bg,
@@ -69,7 +69,7 @@ export function AvailabilityCalendar() {
     <>
       <p className="muted">
         Tocca un giorno per segnare un'indisponibilità (o confermare che sei disponibile). Lo staff la vede quando
-        ti propone una data.
+        ti assegna una data.
       </p>
       <div className="legend">
         <span>
@@ -79,10 +79,7 @@ export function AvailabilityCalendar() {
           <i style={{ background: UNAVAILABLE }} /> Non disponibile
         </span>
         <span>
-          <i style={{ background: performanceStatusColor.CONFERMATO.bg }} /> Data confermata
-        </span>
-        <span>
-          <i style={{ background: performanceStatusColor.PROPOSTO.bg }} /> Da confermare
+          <i style={{ background: performanceStatusColor.CONFERMATO.bg }} /> In programma
         </span>
       </div>
       {error && <div className="alert alert-error">{error}</div>}

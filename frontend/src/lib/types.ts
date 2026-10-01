@@ -3,7 +3,7 @@
 export type Role = 'ADMIN' | 'STAFF' | 'ARTIST';
 export type ArtistType = 'DJ' | 'BAND';
 export type EventStatus = 'BOZZA' | 'PUBBLICATO' | 'ANNULLATO';
-export type PerformanceStatus = 'PROPOSTO' | 'CONFERMATO' | 'RIFIUTATO' | 'ANNULLATO';
+export type PerformanceStatus = 'CONFERMATO' | 'RIFIUTATO' | 'ANNULLATO';
 
 export interface ArtistSummary {
   id: string;

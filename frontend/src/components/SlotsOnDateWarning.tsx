@@ -19,7 +19,7 @@ export function SlotsOnDateWarning({ slots, audience }: { slots: Performance[]; 
       </ul>
       {audience === 'staff'
         ? 'Puoi salvare comunque l\x27indisponibilità: lo slot non viene modificato, ricordati di annullarlo o riassegnarlo.'
-        : 'Puoi salvare comunque l\x27indisponibilità: la data resta in programma, rifiutala da "Le mie date" o avvisa lo staff.'}
+        : 'Puoi salvare comunque l\x27indisponibilità: la data resta in programma, avvisa lo staff.'}
     </div>
   );
 }

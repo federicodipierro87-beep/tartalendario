@@ -45,7 +45,7 @@ export function EventDetailPage() {
   }
 
   const slots = event.performances ?? [];
-  const activeSlots = slots.filter((p) => p.stato === 'PROPOSTO' || p.stato === 'CONFERMATO');
+  const activeSlots = slots.filter((p) => p.stato === 'CONFERMATO');
 
   return (
     <div className="page">

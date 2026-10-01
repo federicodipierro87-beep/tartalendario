@@ -16,9 +16,8 @@ export const eventStatusLabel: Record<EventStatus, string> = {
   ANNULLATO: 'Annullata',
 };
 
-export const PERFORMANCE_STATUSES: PerformanceStatus[] = ['PROPOSTO', 'CONFERMATO', 'RIFIUTATO', 'ANNULLATO'];
+export const PERFORMANCE_STATUSES: PerformanceStatus[] = ['CONFERMATO', 'RIFIUTATO', 'ANNULLATO'];
 export const performanceStatusLabel: Record<PerformanceStatus, string> = {
-  PROPOSTO: 'Proposto',
   CONFERMATO: 'Confermato',
   RIFIUTATO: 'Rifiutato',
   ANNULLATO: 'Annullato',
@@ -26,7 +25,6 @@ export const performanceStatusLabel: Record<PerformanceStatus, string> = {
 
 /** Colori per stato dello slot (sfondo, testo), usati in calendario e badge. */
 export const performanceStatusColor: Record<PerformanceStatus, { bg: string; fg: string }> = {
-  PROPOSTO: { bg: '#f59e0b', fg: '#1f1300' },
   CONFERMATO: { bg: '#16a34a', fg: '#ffffff' },
   RIFIUTATO: { bg: '#dc2626', fg: '#ffffff' },
   ANNULLATO: { bg: '#6b7280', fg: '#ffffff' },

@@ -96,8 +96,8 @@ export function LineupPicker({ value, onChange, inizio, fine, date }: Props) {
             })}
           </ul>
           <div className="muted small">
-            La serata viene divisa in parti uguali tra i DJ, nell'ordine indicato. Gli slot partono come "Proposto" e
-            ogni DJ li conferma dalla propria area; puoi rifinire gli orari dal dettaglio della serata.
+            La serata viene divisa in parti uguali tra i DJ, nell'ordine indicato. Gli slot sono subito confermati;
+            puoi rifinire gli orari dal dettaglio della serata.
           </div>
         </>
       )}
