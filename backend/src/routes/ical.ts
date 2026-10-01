@@ -17,14 +17,12 @@ export const icalRouter = Router();
 const icalLimiter = rateLimit({ windowMs: 60 * 1000, limit: 30, standardHeaders: 'draft-8', legacyHeaders: false });
 
 const statusMap: Record<PerformanceStatus, ICalEventStatus> = {
-  PROPOSTO: ICalEventStatus.TENTATIVE,
   CONFERMATO: ICalEventStatus.CONFIRMED,
   RIFIUTATO: ICalEventStatus.CANCELLED,
   ANNULLATO: ICalEventStatus.CANCELLED,
 };
 
 const statusLabel: Record<PerformanceStatus, string> = {
-  PROPOSTO: 'Proposto (da confermare)',
   CONFERMATO: 'Confermato',
   RIFIUTATO: 'Rifiutato',
   ANNULLATO: 'Annullato',
@@ -60,7 +58,7 @@ icalRouter.get('/ical/:file', icalLimiter, async (req, res) => {
       end: p.fine,
       stamp: p.updatedAt,
       lastModified: p.updatedAt,
-      summary: `${p.stato === 'PROPOSTO' ? '[DA CONFERMARE] ' : ''}${p.venue.nome}${p.event.titolo ? ` · ${p.event.titolo}` : ''}`,
+      summary: `${p.venue.nome}${p.event.titolo ? ` · ${p.event.titolo}` : ''}`,
       description: [
         p.event.titolo ? `Serata: ${p.event.titolo}` : null,
         `Locale: ${p.venue.nome}`,

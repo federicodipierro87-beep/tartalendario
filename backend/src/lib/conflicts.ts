@@ -3,7 +3,7 @@ import { DateTime } from 'luxon';
 import { conflict } from './http.js';
 
 /** Stati che "occupano" artista e locale: solo questi generano conflitti. */
-export const ACTIVE_PERFORMANCE_STATUSES: PerformanceStatus[] = ['PROPOSTO', 'CONFERMATO'];
+export const ACTIVE_PERFORMANCE_STATUSES: PerformanceStatus[] = ['CONFERMATO'];
 
 export const isActiveStatus = (stato: PerformanceStatus) => ACTIVE_PERFORMANCE_STATUSES.includes(stato);
 

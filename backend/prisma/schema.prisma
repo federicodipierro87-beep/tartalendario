@@ -28,7 +28,6 @@ enum EventStatus {
 }
 
 enum PerformanceStatus {
-  PROPOSTO
   CONFERMATO
   RIFIUTATO
   ANNULLATO
