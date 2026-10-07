@@ -22,6 +22,10 @@ import type { Artist, ArtistType, Availability, EventItem, Performance, Performa
 import { useAsync } from '../lib/useAsync';
 
 const UNAVAILABLE_COLOR = '#dc2626';
+// Artisti con un colore fisso per i propri slot (le indisponibilità restano rosse).
+const ARTIST_COLORS: Record<string, { bg: string; fg: string }> = {
+  meto: { bg: '#2563eb', fg: '#ffffff' },
+};
 
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -97,8 +101,11 @@ export function CalendarPage() {
         }));
         // Gli slot confermati prendono il colore della serata (bozza/pubblicata);
         // quelli rifiutati o annullati mantengono il colore del proprio stato.
+        // Gli artisti in ARTIST_COLORS hanno sempre il loro colore.
         const slots: EventInput[] = perf.performances.map((p) => {
-          const color = p.stato === 'CONFERMATO' ? eventStatusColor[p.event.stato] : performanceStatusColor[p.stato];
+          const color =
+            ARTIST_COLORS[p.artist.nomeArte.trim().toLowerCase()] ??
+            (p.stato === 'CONFERMATO' ? eventStatusColor[p.event.stato] : performanceStatusColor[p.stato]);
           return {
             id: p.id,
             title: multiVenue ? `${p.artist.nomeArte} · ${p.venue.nome}` : p.artist.nomeArte,
